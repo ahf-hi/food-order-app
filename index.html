@@ -302,8 +302,17 @@
         // IMPORTANT: The global variables below are provided by the canvas environment.
         // DO NOT manually edit them.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // This is the updated, more robust way to handle the firebase config.
+        let firebaseConfig = {};
+        if (typeof __firebase_config === 'string') {
+          try {
+            firebaseConfig = JSON.parse(__firebase_config);
+          } catch (e) {
+            console.error("Failed to parse Firebase config string. Using fallback.", e);
+          }
+        }
         
         let db;
         let auth;
@@ -354,10 +363,6 @@
         //--- AUTHENTICATION AND INITIALIZATION ---
         async function initializeFirebase() {
             try {
-                if (!firebaseConfig) {
-                    throw new Error("Firebase configuration not found. Please ensure it is a valid JSON string.");
-                }
-                
                 // Initialize Firebase app and services
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
@@ -376,7 +381,7 @@
                 setupRealtimeListeners();
             } catch (error) {
                 console.error("Firebase initialization or authentication error:", error);
-                showMessage(`Authentication failed: ${error.message}`, "error");
+                showMessage(`Failed to initialize app. Please check your config.`, "error");
             }
         }
 
