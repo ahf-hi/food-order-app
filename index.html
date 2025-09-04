@@ -299,32 +299,12 @@
         import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, setLogLevel, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // IMPORTANT: Use the global variables for Firebase configuration
+        // IMPORTANT: The global variables below are provided by the canvas environment.
+        // DO NOT manually edit them.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        // const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "firebase/app";
-        import { getAnalytics } from "firebase/analytics";
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
-
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        const firebaseConfig = {
-          apiKey: "AIzaSyCtSmX4LW32qBQD-5EyfekesfZQPlfxwXs",
-          authDomain: "food-order-5349c.firebaseapp.com",
-          projectId: "food-order-5349c",
-          storageBucket: "food-order-5349c.firebasestorage.app",
-          messagingSenderId: "647741834182",
-          appId: "1:647741834182:web:ae86fab8de8afabfa5e8c7",
-          measurementId: "G-4MB5FJQB3X"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
+        
         let db;
         let auth;
         let userId;
@@ -372,32 +352,31 @@
         const noSalesDataMessage = document.getElementById('noSalesDataMessage');
 
         //--- AUTHENTICATION AND INITIALIZATION ---
-        function initializeFirebase() {
+        async function initializeFirebase() {
             try {
+                if (!firebaseConfig) {
+                    throw new Error("Firebase configuration not found. Please ensure it is a valid JSON string.");
+                }
+                
+                // Initialize Firebase app and services
                 const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
                 auth = getAuth(app);
-                authenticateUser();
-            } catch (error) {
-                console.error("Firebase initialization error:", error);
-                showMessage("Failed to initialize app. Please check your config.", "error");
-            }
-        }
-
-        async function authenticateUser() {
-            try {
+                db = getFirestore(app);
+                
+                // Sign in the user using the provided token or anonymously
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
                 } else {
                     await signInAnonymously(auth);
                 }
+
                 userId = auth.currentUser.uid;
                 userIdDisplay.textContent = `User ID: ${userId}`;
                 console.log("Firebase authenticated successfully. User ID:", userId);
                 setupRealtimeListeners();
             } catch (error) {
-                console.error("Authentication error:", error);
-                showMessage("Authentication failed. Cannot access database.", "error");
+                console.error("Firebase initialization or authentication error:", error);
+                showMessage(`Authentication failed: ${error.message}`, "error");
             }
         }
 
@@ -960,4 +939,3 @@
     </script>
 </body>
 </html>
-
