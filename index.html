@@ -28,882 +28,508 @@
             background-color: #ffffff;
             border-radius: 1.5rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            padding: 2.5rem;
+            padding: 2rem;
             margin-bottom: 2rem;
         }
-        .input-group label {
-            font-weight: 500;
-            color: #4b5563;
-        }
-        .input-group input, .input-group select, .input-group textarea {
-            margin-top: 0.5rem;
-            border-radius: 0.75rem;
-            border: 1px solid #d1d5db;
-            padding: 0.75rem 1rem;
-            width: 100%;
-            font-size: 1rem;
-            color: #1f2937;
-            transition: all 0.2s ease-in-out;
-        }
-        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        .btn {
+            @apply px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105;
         }
         .btn-primary {
-            background-color: #6366f1;
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 1rem;
-            font-weight: 600;
-            transition: all 0.2s ease-in-out;
-        }
-        .btn-primary:hover {
-            background-color: #4f46e5;
-            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
+            @apply bg-orange-500 text-white shadow-lg;
         }
         .btn-secondary {
-            background-color: #e5e7eb;
-            color: #4b5563;
-            padding: 1rem 2rem;
-            border-radius: 1rem;
-            font-weight: 600;
-            transition: all 0.2s ease-in-out;
+            @apply bg-gray-200 text-gray-800 shadow-sm;
         }
-        .btn-secondary:hover {
-            background-color: #d1d5db;
-        }
-        .message-box {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #4b5563;
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            transform: translateX(150%);
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-        .message-box.show {
-            transform: translateX(0);
+        .hidden {
+            display: none;
         }
         .table-container {
             overflow-x: auto;
         }
-        th, td {
-            padding: 1rem;
-            white-space: nowrap;
-        }
-        th {
-            cursor: pointer;
-            user-select: none;
-            position: relative;
-        }
-        th:hover::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: -5px;
-            height: 2px;
-            background-color: #6366f1;
-            transition: width 0.3s ease-in-out;
+        .data-table {
             width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
         }
-        .sort-icon {
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 0.5rem;
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            opacity: 0.5;
+        .data-table th, .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
         }
-        .sort-asc .sort-icon {
-            border-bottom: 5px solid #000;
-            opacity: 1;
+        .data-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #1f2937;
+            cursor: pointer;
         }
-        .sort-desc .sort-icon {
-            border-top: 5px solid #000;
-            opacity: 1;
+        .data-table td {
+            color: #4b5563;
+        }
+        .data-table tbody tr:hover {
+            background-color: #f3f4f6;
         }
     </style>
 </head>
-<body class="bg-gray-100 antialiased text-gray-800">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-    <!-- Message Box for alerts -->
-    <div id="messageBox" class="message-box"></div>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="mb-8 text-center">
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-indigo-700">Food Order System</h1>
-            <p id="userIdDisplay" class="text-sm mt-2 font-medium text-gray-500">User ID: Loading...</p>
-            <div class="mt-4 flex justify-center space-x-4">
-                <button id="showOrderFormBtn" class="btn-primary">Place Order</button>
-                <button id="showMenusBtn" class="btn-primary">Manage Menu</button>
-                <button id="showOrdersBtn" class="btn-primary">View All Orders</button>
-                <button id="showSalesReportBtn" class="btn-primary">View Sales Report</button>
-            </div>
+    <div class="container bg-white p-8 rounded-2xl shadow-lg w-full max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-orange-600">Food Order System</h1>
+            <p class="text-gray-500 mt-2">Manage your menus, orders, and sales report.</p>
+            <p class="text-sm mt-2 text-gray-500" id="user-id-display">Loading user...</p>
         </header>
 
-        <!-- Order Form Section -->
-        <div id="orderFormSection" class="card">
-            <h2 class="text-2xl font-bold mb-6 text-gray-700">Place a New Order</h2>
-            <form id="orderForm" class="space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div class="input-group">
-                        <label for="ordererName" class="block">Your Name</label>
-                        <input type="text" id="ordererName" placeholder="John Doe" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="location" class="block">Your Location</label>
-                        <input type="text" id="location" placeholder="Office, Home, etc." required>
+        <nav class="flex justify-center space-x-4 mb-8">
+            <button id="showOrderFormBtn" class="btn btn-primary">Place New Order</button>
+            <button id="showOrdersBtn" class="btn btn-secondary">View Orders</button>
+            <button id="showMenusBtn" class="btn btn-secondary">Manage Menus</button>
+            <button id="showSalesReportBtn" class="btn btn-secondary">Sales Report</button>
+        </nav>
+
+        <!-- Place New Order Section -->
+        <section id="orderFormSection" class="card">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Place New Order</h2>
+            <form id="orderForm" class="space-y-4">
+                <div>
+                    <label for="customerName" class="block text-gray-700 font-medium mb-1">Customer Name</label>
+                    <input type="text" id="customerName" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                </div>
+                <div>
+                    <label for="orderDate" class="block text-gray-700 font-medium mb-1">Order Date</label>
+                    <input type="date" id="orderDate" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                </div>
+                <div>
+                    <label for="menuItems" class="block text-gray-700 font-medium mb-1">Menu Items</label>
+                    <div id="menuItems" class="space-y-2">
+                        <!-- Menu items will be dynamically generated here -->
+                        <p class="text-gray-500 text-center" id="menu-loading-text">Loading menu...</p>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div class="input-group">
-                        <label for="menuSelect" class="block">Menu Item</label>
-                        <select id="menuSelect" required>
-                            <option value="" disabled selected>Select a menu item</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="price" class="block">Price (RM)</label>
-                        <input type="number" id="price" placeholder="0.00" step="0.01" min="0" required readonly>
-                    </div>
+                <div class="mt-4">
+                    <label class="block text-gray-700 font-medium mb-1">Total Price: <span id="totalPrice" class="font-bold text-orange-600">$0.00</span></label>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div class="input-group">
-                        <label for="count" class="block">Quantity</label>
-                        <input type="number" id="count" value="1" min="1" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="orderDate" class="block">Order Date</label>
-                        <input type="date" id="orderDate" required>
-                    </div>
-                </div>
-
-                <div class="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-xl flex justify-between items-center font-bold">
-                    <span>Total Price:</span>
-                    <span id="totalPrice" class="text-xl">RM 0.00</span>
-                </div>
-
-                <button type="submit" class="btn-primary w-full text-center">Place Order</button>
+                <button type="submit" class="w-full btn btn-primary mt-6">Submit Order</button>
             </form>
-        </div>
+        </section>
 
-        <!-- Orders List Section -->
-        <div id="ordersListSection" class="card hidden">
-            <h2 class="text-2xl font-bold mb-6 text-gray-700">All Orders</h2>
-            
-            <div class="mb-4">
-                 <button id="summarizeOrdersBtn" class="btn-primary">✨ Summarize Orders</button>
+        <!-- View Orders Section -->
+        <section id="ordersListSection" class="card hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Orders List</h2>
+            <p class="text-gray-500 text-center mb-4" id="orders-loading-text">Loading orders...</p>
+            <div class="flex items-center space-x-2 mb-4">
+                <span class="text-gray-700">Sort By:</span>
+                <button onclick="sortTable('date')" class="btn btn-secondary px-3 py-1 text-sm">Date</button>
+                <button onclick="sortTable('customerName')" class="btn btn-secondary px-3 py-1 text-sm">Customer</button>
             </div>
-
-            <div id="summaryContainer" class="hidden bg-gray-100 p-4 rounded-xl mb-4">
-                <p id="summaryText" class="text-gray-800 text-sm italic"></p>
-                <div id="summaryLoading" class="hidden text-center text-gray-500">Generating summary...</div>
-            </div>
-
-            <div class="table-container bg-white p-4 rounded-xl">
-                <table class="w-full text-left border-collapse">
+            <div class="table-container">
+                <table id="ordersTable" class="data-table">
                     <thead>
                         <tr>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider" onclick="sortTable('name')">Name<span class="sort-icon"></span></th>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Location</th>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider" onclick="sortTable('date')">Date<span class="sort-icon"></span></th>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Menu</th>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Qty</th>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Price (RM)</th>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Total (RM)</th>
+                            <th onclick="sortTable('date')">Date</th>
+                            <th onclick="sortTable('customerName')">Customer</th>
+                            <th>Items</th>
+                            <th>Total Price</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="ordersTableBody" class="text-gray-700">
-                        <!-- Orders will be injected here -->
+                    <tbody>
+                        <!-- Order data will be dynamically generated here -->
                     </tbody>
                 </table>
-                <div id="noOrdersMessage" class="text-center text-gray-500 py-8 text-lg hidden">No orders yet. Be the first to place one!</div>
             </div>
-        </div>
+        </section>
 
-        <!-- Manage Menu Section -->
-        <div id="manageMenuSection" class="card hidden">
-            <h2 class="text-2xl font-bold mb-6 text-gray-700">Manage Menu Items</h2>
-            <form id="menuForm" class="space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div class="input-group">
-                        <label for="newMenuItem" class="block">New Menu Item</label>
-                        <input type="text" id="newMenuItem" placeholder="e.g., Nasi Lemak" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="newMenuPrice" class="block">Price (RM)</label>
-                        <input type="number" id="newMenuPrice" placeholder="e.g., 7.50" step="0.01" min="0" required>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label for="menuDescription" class="block flex justify-between items-center">
-                        <span>Menu Description</span>
-                        <button type="button" id="generateDescriptionBtn" class="btn-secondary px-4 py-2 text-sm">✨ Generate Description</button>
-                    </label>
-                    <textarea id="menuDescription" rows="2" placeholder="A rich, savory coconut milk rice served with..."></textarea>
-                </div>
-                <button type="submit" class="btn-primary w-full text-center">Add Menu Item</button>
-            </form>
-
-            <div class="mt-8">
-                <h3 class="text-xl font-bold mb-4 text-gray-700">Current Menu</h3>
-                <div class="table-container bg-white p-4 rounded-xl">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr>
-                                <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Menu Item</th>
-                                <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Description</th>
-                                <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Price (RM)</th>
-                                <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="menuTableBody" class="text-gray-700">
-                            <!-- Menu items will be injected here -->
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Manage Menus Section -->
+        <section id="manageMenuSection" class="card hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Manage Menus</h2>
+            <p class="text-gray-500 text-center mb-4" id="menu-manage-loading-text">Loading menu...</p>
+            <div id="menuList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                <!-- Menu items will be dynamically generated here with edit/delete options -->
             </div>
-        </div>
+            <div class="space-y-4">
+                <h3 class="text-xl font-bold text-gray-800">Add New Menu Item</h3>
+                <form id="menuForm" class="space-y-4">
+                    <div>
+                        <label for="menuName" class="block text-gray-700 font-medium mb-1">Menu Name</label>
+                        <input type="text" id="menuName" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                    </div>
+                    <div>
+                        <label for="menuPrice" class="block text-gray-700 font-medium mb-1">Price</label>
+                        <input type="number" id="menuPrice" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" step="0.01" required>
+                    </div>
+                    <button type="submit" class="w-full btn btn-primary">Add Menu Item</button>
+                </form>
+            </div>
+        </section>
 
         <!-- Sales Report Section -->
-        <div id="salesReportSection" class="card hidden">
-            <h2 class="text-2xl font-bold mb-6 text-gray-700">Sales Report</h2>
+        <section id="salesReportSection" class="card hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Sales Report</h2>
             <div class="flex items-center space-x-4 mb-4">
-                <label for="reportPeriod" class="text-gray-700 font-medium">View By:</label>
-                <select id="reportPeriod" class="btn-secondary px-4 py-2 rounded-xl">
-                    <option value="monthly">Monthly</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="yearly">Yearly</option>
+                <label for="reportPeriodSelect" class="text-gray-700 font-medium">Select Period:</label>
+                <select id="reportPeriodSelect" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <option value="today">Today</option>
+                    <option value="thisWeek">This Week</option>
+                    <option value="thisMonth">This Month</option>
                 </select>
             </div>
-            <div id="reportContent" class="space-y-6">
-                <div id="noSalesDataMessage" class="text-center text-gray-500 py-8 text-lg hidden">No sales data available for this period.</div>
-                <!-- Sales data will be injected here -->
+            <div id="summaryContainer" class="bg-gray-50 p-6 rounded-lg shadow-inner">
+                <div class="text-center">
+                    <p class="text-gray-500 text-sm">Total Sales</p>
+                    <p id="totalSales" class="text-4xl font-bold text-orange-600 mt-1">$0.00</p>
+                </div>
+            </div>
+            <div class="mt-8">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Top Selling Items</h3>
+                <ul id="topSellingItemsList" class="space-y-2">
+                    <!-- Top selling items will be dynamically generated here -->
+                </ul>
+            </div>
+        </section>
+
+        <!-- Reusable Modal (for alerts, confirmations) -->
+        <div id="modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modalTitle"></h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p class="text-sm text-gray-500" id="modalMessage"></p>
+                        <input type="text" id="modalInput" class="w-full mt-4 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 hidden">
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="modalConfirmBtn" class="px-4 py-2 bg-orange-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            OK
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, setLogLevel, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // IMPORTANT: The global variables below are provided by the canvas environment.
-        // DO NOT manually edit them.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // --- SUPABASE CONFIG ---
+        // IMPORTANT: Replace these with your Supabase Project URL and Public API Key
+        // You can find these in your Supabase dashboard under Project Settings > API
+        const SUPABASE_URL = 'https://uachxufoteeegiyzsgol.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhY2h4dWZvdGVlZWdpeXpzZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0OTA2NTIsImV4cCI6MjA3MzA2NjY1Mn0.40dJrJglIUPSy2ksWL51MuJ5EU69zhTBVYt-bvV0f78';
         
-        // This is the updated, more robust way to handle the firebase config.
-        let firebaseConfig = {};
-        if (typeof __firebase_config === 'string') {
-          try {
-            firebaseConfig = JSON.parse(__firebase_config);
-          } catch (e) {
-            console.error("Failed to parse Firebase config string. Using fallback.", e);
-          }
-        }
-        
-        let db;
-        let auth;
+        let supabase;
         let userId;
-        let allOrders = [];
-        let availableMenus = [];
-        let currentSortColumn = null;
-        let currentSortDirection = 'asc';
-        
-        setLogLevel('debug');
 
-        // Get DOM elements
-        const orderForm = document.getElementById('orderForm');
-        const countInput = document.getElementById('count');
-        const priceInput = document.getElementById('price');
-        const menuSelect = document.getElementById('menuSelect');
-        const totalPriceSpan = document.getElementById('totalPrice');
-        const ordersTableBody = document.getElementById('ordersTableBody');
+        // Global variables for data
+        let orders = [];
+        let menuItems = [];
+
+        // Custom modal functions
+        function showModal(title, message, onConfirm = () => {}) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            const inputField = document.getElementById('modalInput');
+            
+            inputField.classList.add('hidden');
+            
+            confirmBtn.onclick = () => {
+                modal.classList.add('hidden');
+                onConfirm();
+            };
+            modal.classList.remove('hidden');
+        }
+
+        function promptWithModal(title, message, initialValue = '', onConfirm = () => {}) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            const inputField = document.getElementById('modalInput');
+
+            inputField.value = initialValue;
+            inputField.classList.remove('hidden');
+            
+            confirmBtn.onclick = () => {
+                modal.classList.add('hidden');
+                onConfirm(inputField.value);
+            };
+            modal.classList.remove('hidden');
+        }
+
+        // UI Element References
         const orderFormSection = document.getElementById('orderFormSection');
         const ordersListSection = document.getElementById('ordersListSection');
         const manageMenuSection = document.getElementById('manageMenuSection');
         const salesReportSection = document.getElementById('salesReportSection');
+        const summaryContainer = document.getElementById('summaryContainer'); // This line is correct
+
         const showOrderFormBtn = document.getElementById('showOrderFormBtn');
-        const showMenusBtn = document.getElementById('showMenusBtn');
         const showOrdersBtn = document.getElementById('showOrdersBtn');
+        const showMenusBtn = document.getElementById('showMenusBtn');
         const showSalesReportBtn = document.getElementById('showSalesReportBtn');
-        const noOrdersMessage = document.getElementById('noOrdersMessage');
-        const userIdDisplay = document.getElementById('userIdDisplay');
-        const messageBox = document.getElementById('messageBox');
-        
-        // Merchant Menu elements
+
+        const orderForm = document.getElementById('orderForm');
+        const menuItemsContainer = document.getElementById('menuItems');
+        const menuLoadingText = document.getElementById('menu-loading-text');
+        const totalPriceEl = document.getElementById('totalPrice');
+
+        const ordersTableBody = document.querySelector('#ordersTable tbody');
+        const ordersLoadingText = document.getElementById('orders-loading-text');
         const menuForm = document.getElementById('menuForm');
-        const newMenuItemInput = document.getElementById('newMenuItem');
-        const newMenuPriceInput = document.getElementById('newMenuPrice');
-        const menuDescriptionInput = document.getElementById('menuDescription');
-        const menuTableBody = document.getElementById('menuTableBody');
-        const generateDescriptionBtn = document.getElementById('generateDescriptionBtn');
-        const summarizeOrdersBtn = document.getElementById('summarizeOrdersBtn');
-        const summaryContainer = document.getElementById('summaryContainer');
-        const summaryText = document.getElementById('summaryText');
-        const summaryLoading = document.getElementById('summaryLoading');
-        
-        // Sales Report elements
-        const reportPeriodSelect = document.getElementById('reportPeriod');
-        const reportContentDiv = document.getElementById('reportContent');
-        const noSalesDataMessage = document.getElementById('noSalesDataMessage');
+        const menuListContainer = document.getElementById('menuList');
+        const menuManageLoadingText = document.getElementById('menu-manage-loading-text');
+        const totalSalesEl = document.getElementById('totalSales');
+        const topSellingItemsList = document.getElementById('topSellingItemsList');
+        const reportPeriodSelect = document.getElementById('reportPeriodSelect');
+        const userIdDisplay = document.getElementById('user-id-display');
 
-        //--- AUTHENTICATION AND INITIALIZATION ---
-        async function initializeFirebase() {
-            try {
-                // Initialize Firebase app and services
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                
-                // Sign in the user using the provided token or anonymously
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                userId = auth.currentUser.uid;
-                userIdDisplay.textContent = `User ID: ${userId}`;
-                console.log("Firebase authenticated successfully. User ID:", userId);
-                setupRealtimeListeners();
-            } catch (error) {
-                console.error("Firebase initialization or authentication error:", error);
-                showMessage(`Failed to initialize app. Please check your config.`, "error");
+        // Functions to handle UI and data logic
+        function renderMenuItems() {
+            menuItemsContainer.innerHTML = '';
+            if (menuItems.length === 0) {
+                menuItemsContainer.innerHTML = `<p class="text-gray-500 text-center">No menu items found. Add some in the "Manage Menus" section.</p>`;
+            } else {
+                menuItems.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('flex', 'items-center', 'justify-between', 'bg-gray-100', 'p-3', 'rounded-lg');
+                    itemDiv.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="menuItem-${item.id}" data-price="${item.price}" class="menu-item-checkbox form-checkbox h-5 w-5 text-orange-600 rounded focus:ring-0">
+                            <label for="menuItem-${item.id}" class="text-gray-800 font-medium">${item.name}</label>
+                        </div>
+                        <span class="text-gray-600">$${item.price.toFixed(2)}</span>
+                    `;
+                    menuItemsContainer.appendChild(itemDiv);
+                });
             }
-        }
-
-        function showMessage(message, type = "info") {
-            messageBox.textContent = message;
-            messageBox.style.backgroundColor = type === "error" ? "#dc2626" : "#4b5563";
-            messageBox.classList.add('show');
-            setTimeout(() => {
-                messageBox.classList.remove('show');
-            }, 3000);
+            document.querySelectorAll('.menu-item-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', calculateTotalPrice);
+            });
+            menuLoadingText.classList.add('hidden');
         }
 
         function calculateTotalPrice() {
-            const count = parseFloat(countInput.value) || 0;
-            const price = parseFloat(priceInput.value) || 0;
-            const total = count * price;
-            totalPriceSpan.textContent = `RM ${total.toFixed(2)}`;
+            let total = 0;
+            document.querySelectorAll('.menu-item-checkbox:checked').forEach(checkbox => {
+                total += parseFloat(checkbox.dataset.price);
+            });
+            totalPriceEl.textContent = `$${total.toFixed(2)}`;
         }
 
-        function renderOrders(ordersToRender) {
+        function renderOrdersList() {
             ordersTableBody.innerHTML = '';
-            if (ordersToRender.length === 0) {
-                noOrdersMessage.classList.remove('hidden');
-                return;
+            if (orders.length === 0) {
+                ordersTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500">No orders found.</td></tr>`;
             } else {
-                noOrdersMessage.classList.add('hidden');
-            }
-
-            ordersToRender.forEach(order => {
-                const row = document.createElement('tr');
-                row.className = 'border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors';
-                row.innerHTML = `
-                    <td class="p-4 rounded-l-xl">${order.name}</td>
-                    <td class="p-4">${order.location}</td>
-                    <td class="p-4">${order.date}</td>
-                    <td class="p-4 font-medium text-gray-900">${order.menu}</td>
-                    <td class="p-4">${order.count}</td>
-                    <td class="p-4">RM ${order.price.toFixed(2)}</td>
-                    <td class="p-4 rounded-r-xl font-bold text-green-600">RM ${order.totalPrice.toFixed(2)}</td>
-                `;
-                ordersTableBody.appendChild(row);
-            });
-        }
-        
-        function renderMenus() {
-            menuSelect.innerHTML = '<option value="" disabled selected>Select a menu item</option>';
-            menuTableBody.innerHTML = '';
-            
-            availableMenus.forEach(menu => {
-                // Populate the select dropdown
-                const option = document.createElement('option');
-                option.value = JSON.stringify({ item: menu.item, price: menu.price });
-                option.textContent = menu.item;
-                menuSelect.appendChild(option);
-                
-                // Populate the merchant menu table
-                const row = document.createElement('tr');
-                row.className = 'border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors';
-                row.innerHTML = `
-                    <td class="p-4 font-medium text-gray-900 rounded-l-xl" contenteditable="true" data-field="item">${menu.item}</td>
-                    <td class="p-4 text-gray-600" contenteditable="true" data-field="description">${menu.description || 'N/A'}</td>
-                    <td class="p-4" contenteditable="true" data-field="price">RM ${menu.price.toFixed(2)}</td>
-                    <td class="p-4 rounded-r-xl">
-                        <button class="update-btn bg-indigo-500 text-white text-sm px-3 py-1 rounded-full hover:bg-indigo-600 transition-colors mr-2" data-id="${menu.id}">Update</button>
-                        <button class="delete-btn bg-red-500 text-white text-sm px-3 py-1 rounded-full hover:bg-red-600 transition-colors" data-id="${menu.id}">Delete</button>
-                    </td>
-                `;
-                menuTableBody.appendChild(row);
-            });
-        }
-
-        //--- FIREBASE LOGIC ---
-        async function saveOrder(order) {
-            try {
-                const ordersRef = collection(db, `artifacts/${appId}/public/data/orders`);
-                await addDoc(ordersRef, {
-                    ...order,
-                    createdAt: new Date().toISOString()
+                const sortedOrders = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date));
+                sortedOrders.forEach((order) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="whitespace-nowrap">${order.date}</td>
+                        <td>${order.customerName}</td>
+                        <td>${order.items.map(item => item.name).join(', ')}</td>
+                        <td class="font-bold">$${order.totalPrice.toFixed(2)}</td>
+                        <td class="whitespace-nowrap">
+                            <button onclick="deleteOrder('${order.id}')" class="text-red-500 hover:text-red-700 font-medium transition-colors duration-200">Delete</button>
+                        </td>
+                    `;
+                    ordersTableBody.appendChild(row);
                 });
-                showMessage("Order placed successfully!", "success");
-                orderForm.reset();
-                calculateTotalPrice();
-                showOrdersBtn.click();
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                showMessage("Error placing order. Please try again.", "error");
             }
-        }
-        
-        async function saveMenuItem(menuItem) {
-            try {
-                const menusRef = collection(db, `artifacts/${appId}/public/data/menus`);
-                await addDoc(menusRef, menuItem);
-                showMessage("Menu item added successfully!", "success");
-                menuForm.reset();
-            } catch (e) {
-                console.error("Error adding menu item: ", e);
-                showMessage("Error adding menu item. Please try again.", "error");
-            }
-        }
-        
-        async function updateMenuItem(id, data) {
-            try {
-                const menuDocRef = doc(db, `artifacts/${appId}/public/data/menus`, id);
-                await updateDoc(menuDocRef, data);
-                showMessage("Menu item updated successfully!", "success");
-            } catch (e) {
-                console.error("Error updating menu item:", e);
-                showMessage("Error updating menu item.", "error");
-            }
+            ordersLoadingText.classList.add('hidden');
         }
 
-        async function deleteMenuItem(id) {
-            try {
-                const menuDocRef = doc(db, `artifacts/${appId}/public/data/menus`, id);
-                await deleteDoc(menuDocRef);
-                showMessage("Menu item deleted successfully!", "success");
-            } catch (e) {
-                console.error("Error deleting menu item:", e);
-                showMessage("Error deleting menu item.", "error");
-            }
-        }
-        
-        function setupRealtimeListeners() {
-            if (!db || !userId) {
-                console.log("Database or user not ready. Skipping listener setup.");
-                return;
-            }
-            
-            // Listener for orders
-            const ordersRef = collection(db, `artifacts/${appId}/public/data/orders`);
-            const ordersQuery = query(ordersRef);
-
-            onSnapshot(ordersQuery, (snapshot) => {
-                const updatedOrders = [];
-                snapshot.forEach((doc) => {
-                    updatedOrders.push(doc.data());
-                });
-                allOrders = updatedOrders;
-                sortTable(currentSortColumn);
-            }, (error) => {
-                console.error("Error listening for orders:", error);
-                showMessage("Error fetching orders. Please check your connection.", "error");
-            });
-            
-            // Listener for menus
-            const menusRef = collection(db, `artifacts/${appId}/public/data/menus`);
-            const menusQuery = query(menusRef);
-            
-            onSnapshot(menusQuery, (snapshot) => {
-                const updatedMenus = [];
-                snapshot.forEach((doc) => {
-                    updatedMenus.push({ id: doc.id, ...doc.data() });
-                });
-                availableMenus = updatedMenus;
-                renderMenus();
-            }, (error) => {
-                console.error("Error listening for menus:", error);
-                showMessage("Error fetching menus. Please check your connection.", "error");
-            });
-        }
-
-        function sortTable(columnName) {
-            if (currentSortColumn === columnName) {
-                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+        function renderManageMenu() {
+            menuListContainer.innerHTML = '';
+            if (menuItems.length === 0) {
+                menuListContainer.innerHTML = `<p class="text-gray-500 text-center">No menu items found.</p>`;
             } else {
-                currentSortColumn = columnName;
-                currentSortDirection = 'asc';
+                menuItems.forEach((item) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'flex', 'flex-col', 'sm:flex-row', 'items-center', 'justify-between', 'space-y-2', 'sm:space-y-0');
+                    itemDiv.innerHTML = `
+                        <span class="font-medium text-gray-800">${item.name}</span>
+                        <span class="text-gray-600">$${item.price.toFixed(2)}</span>
+                        <div class="flex space-x-2">
+                            <button onclick="editMenuItem('${item.id}', '${item.name}')" class="px-3 py-1 bg-orange-200 text-orange-700 rounded-full text-sm hover:bg-orange-300">Edit</button>
+                            <button onclick="deleteMenuItem('${item.id}')" class="px-3 py-1 bg-red-200 text-red-700 rounded-full text-sm hover:bg-red-300">Delete</button>
+                        </div>
+                    `;
+                    menuListContainer.appendChild(itemDiv);
+                });
             }
-
-            const sortedOrders = [...allOrders].sort((a, b) => {
-                const aValue = a[columnName];
-                const bValue = b[columnName];
-
-                if (aValue < bValue) return currentSortDirection === 'asc' ? -1 : 1;
-                if (aValue > bValue) return currentSortDirection === 'asc' ? 1 : -1;
-                return 0;
-            });
-
-            // Update sort icons
-            document.querySelectorAll('th span.sort-icon').forEach(icon => {
-                icon.parentElement.classList.remove('sort-asc', 'sort-desc');
-            });
-
-            if (columnName) {
-                const currentHeader = document.querySelector(`th[onclick="sortTable('${columnName}')"]`);
-                if (currentHeader) {
-                    currentHeader.classList.add(currentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
-                }
-            }
-            renderOrders(sortedOrders);
-        }
-
-        //--- GEMINI API FUNCTIONS ---
-        async function generateDescription(item) {
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-            const prompt = `Write a short, appetizing, and creative food description (max 20 words) for the dish: "${item}". Do not include the dish name in the response.`;
-
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-            };
-
-            let retryCount = 0;
-            const maxRetries = 3;
-            
-            while (retryCount < maxRetries) {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        if (response.status === 429) {
-                            const delay = Math.pow(2, retryCount) * 1000;
-                            console.warn(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
-                            await new Promise(res => setTimeout(res, delay));
-                            retryCount++;
-                            continue;
-                        } else {
-                            throw new Error(`API error: ${response.statusText}`);
-                        }
-                    }
-
-                    const result = await response.json();
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    return text || 'A delicious, irresistible dish for any occasion.';
-
-                } catch (error) {
-                    console.error("Error generating description:", error);
-                    return 'A delicious, irresistible dish for any occasion.';
-                }
-            }
-            return 'A delicious, irresistible dish for any occasion.';
-        }
-        
-        async function summarizeOrders() {
-            if (allOrders.length === 0) {
-                summaryContainer.classList.remove('hidden');
-                summaryText.textContent = "No orders to summarize yet.";
-                return;
-            }
-
-            summaryContainer.classList.remove('hidden');
-            summaryLoading.classList.remove('hidden');
-            summaryText.classList.add('hidden');
-            
-            const ordersString = allOrders.map(order => 
-                `Item: ${order.menu}, Qty: ${order.count}, Price: RM${order.price.toFixed(2)}`
-            ).join('; ');
-
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-            const prompt = `Based on the following food orders, provide a concise summary (max 3 sentences). Mention the most popular item(s), total quantity of all items, and total revenue. Orders: ${ordersString}`;
-
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-            };
-            
-            let retryCount = 0;
-            const maxRetries = 3;
-
-            while (retryCount < maxRetries) {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        if (response.status === 429) {
-                            const delay = Math.pow(2, retryCount) * 1000;
-                            console.warn(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
-                            await new Promise(res => setTimeout(res, delay));
-                            retryCount++;
-                            continue;
-                        } else {
-                            throw new Error(`API error: ${response.statusText}`);
-                        }
-                    }
-
-                    const result = await response.json();
-                    const summary = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    summaryText.textContent = summary || "Could not generate a summary.";
-                    summaryText.classList.remove('hidden');
-                    summaryLoading.classList.add('hidden');
-                    return;
-
-                } catch (error) {
-                    console.error("Error summarizing orders:", error);
-                    summaryText.textContent = "Error generating summary. Please try again.";
-                    summaryText.classList.remove('hidden');
-                    summaryLoading.classList.add('hidden');
-                    return;
-                }
-            }
-        }
-        
-        //--- SALES REPORT LOGIC ---
-        function getWeekNumber(d) {
-            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-            return weekNo;
+            menuManageLoadingText.classList.add('hidden');
         }
 
         function generateSalesReport(period) {
-            reportContentDiv.innerHTML = '';
-            noSalesDataMessage.classList.add('hidden');
-
-            if (allOrders.length === 0) {
-                noSalesDataMessage.classList.remove('hidden');
-                return;
+            const today = new Date();
+            const startOfPeriod = new Date();
+            if (period === 'thisWeek') {
+                startOfPeriod.setDate(today.getDate() - today.getDay());
+            } else if (period === 'thisMonth') {
+                startOfPeriod.setDate(1);
             }
+            startOfPeriod.setHours(0, 0, 0, 0);
 
-            const salesData = {};
+            let totalSales = 0;
+            const itemSales = {};
 
-            allOrders.forEach(order => {
+            orders.forEach(order => {
                 const orderDate = new Date(order.date);
-                let periodKey;
-
-                if (period === 'monthly') {
-                    periodKey = `${orderDate.getFullYear()}-${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
-                } else if (period === 'weekly') { // weekly
-                    const weekNo = getWeekNumber(orderDate);
-                    periodKey = `${orderDate.getFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
-                } else { // yearly
-                    periodKey = orderDate.getFullYear().toString();
+                if (orderDate >= startOfPeriod) {
+                    totalSales += order.totalPrice;
+                    order.items.forEach(item => {
+                        itemSales[item.name] = (itemSales[item.name] || 0) + 1;
+                    });
                 }
-
-                if (!salesData[periodKey]) {
-                    salesData[periodKey] = {};
-                }
-
-                if (!salesData[periodKey][order.menu]) {
-                    salesData[periodKey][order.menu] = {
-                        item: order.menu,
-                        totalQuantity: 0,
-                        totalRevenue: 0,
-                    };
-                }
-
-                salesData[periodKey][order.menu].totalQuantity += order.count;
-                salesData[periodKey][order.menu].totalRevenue += order.totalPrice;
             });
 
-            // Sort the periods chronologically
-            const sortedPeriods = Object.keys(salesData).sort();
+            totalSalesEl.textContent = `$${totalSales.toFixed(2)}`;
 
-            if (sortedPeriods.length === 0) {
-                noSalesDataMessage.classList.remove('hidden');
-                return;
-            }
-
-            sortedPeriods.forEach(periodKey => {
-                const periodDiv = document.createElement('div');
-                periodDiv.className = 'bg-white p-4 rounded-xl shadow-inner';
-
-                const periodTitle = document.createElement('h3');
-                periodTitle.className = 'text-xl font-bold mb-4 text-gray-700';
-                if (period === 'monthly') {
-                    const [year, month] = periodKey.split('-');
-                    const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
-                    periodTitle.textContent = `${monthName} ${year} Sales`;
-                } else if (period === 'weekly') {
-                    periodTitle.textContent = `Sales for Week ${periodKey.split('-')[1]} of ${periodKey.split('-')[0]}`;
-                } else { // yearly
-                    periodTitle.textContent = `Sales for Year ${periodKey}`;
-                }
-                periodDiv.appendChild(periodTitle);
-
-                const tableContainer = document.createElement('div');
-                tableContainer.className = 'table-container';
-
-                const table = document.createElement('table');
-                table.className = 'w-full text-left border-collapse';
-                table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Rank</th>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Menu Item</th>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Total Quantity</th>
-                            <th class="border-b border-gray-200 text-gray-600 font-semibold text-sm uppercase tracking-wider">Total Revenue (RM)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-700"></tbody>
-                `;
-
-                const tbody = table.querySelector('tbody');
-                const rankedItems = Object.values(salesData[periodKey]).sort((a, b) => b.totalRevenue - a.totalRevenue);
-
-                rankedItems.forEach((item, index) => {
-                    const row = document.createElement('tr');
-                    row.className = 'border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors';
-                    row.innerHTML = `
-                        <td class="p-4">${index + 1}</td>
-                        <td class="p-4 font-medium text-gray-900">${item.item}</td>
-                        <td class="p-4">${item.totalQuantity}</td>
-                        <td class="p-4 font-bold text-green-600">RM ${item.totalRevenue.toFixed(2)}</td>
-                    `;
-                    tbody.appendChild(row);
+            const sortedItems = Object.entries(itemSales).sort(([, countA], [, countB]) => countB - countA);
+            topSellingItemsList.innerHTML = '';
+            if (sortedItems.length === 0) {
+                topSellingItemsList.innerHTML = '<li class="text-gray-500">No sales for this period.</li>';
+            } else {
+                sortedItems.forEach(([name, count]) => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('bg-gray-100', 'p-2', 'rounded-lg');
+                    listItem.innerHTML = `<span class="font-medium">${name}</span> - ${count} sold`;
+                    topSellingItemsList.appendChild(listItem);
                 });
-
-                tableContainer.appendChild(table);
-                periodDiv.appendChild(tableContainer);
-                reportContentDiv.appendChild(periodDiv);
-            });
+            }
         }
 
-
-        //--- EVENT LISTENERS ---
-        orderForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const ordererName = document.getElementById('ordererName').value.trim();
-            const location = document.getElementById('location').value.trim();
-            const selectedMenu = JSON.parse(menuSelect.value);
-            const count = parseInt(document.getElementById('count').value, 10);
-            const orderDate = document.getElementById('orderDate').value;
+        function sortTable(column) {
+            const isAscending = ordersTableBody.getAttribute('data-sort-order') !== 'asc';
+            ordersTableBody.setAttribute('data-sort-order', isAscending ? 'asc' : 'desc');
             
-            if (!ordererName || !location || !selectedMenu.item || isNaN(count) || !orderDate) {
-                showMessage("Please fill out all fields correctly.", "error");
+            const sortedOrders = [...orders].sort((a, b) => {
+                let valA = a[column];
+                let valB = b[column];
+                if (column === 'date') {
+                    valA = new Date(a.date);
+                    valB = new Date(b.date);
+                }
+                if (valA < valB) return isAscending ? -1 : 1;
+                if (valA > valB) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            orders = sortedOrders;
+            renderOrdersList();
+        }
+
+        // Form Submission Handlers
+        orderForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const customerName = document.getElementById('customerName').value;
+            const orderDate = document.getElementById('orderDate').value;
+            const selectedItems = Array.from(document.querySelectorAll('.menu-item-checkbox:checked')).map(checkbox => {
+                const item = menuItems.find(mi => mi.id === checkbox.id.split('-')[1]);
+                return { name: item.name, price: item.price };
+            });
+            const totalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
+
+            if (selectedItems.length === 0) {
+                showModal('Error', 'Please select at least one menu item.');
                 return;
             }
 
             const newOrder = {
-                name: ordererName,
-                location: location,
+                customerName: customerName,
                 date: orderDate,
-                menu: selectedMenu.item,
-                price: selectedMenu.price,
-                count: count,
-                totalPrice: selectedMenu.price * count,
+                items: JSON.stringify(selectedItems), // Store as JSON string for Supabase
+                totalPrice: totalPrice,
+                user_id: userId
             };
-            saveOrder(newOrder);
+            
+            try {
+                const { error } = await supabase.from('orders').insert([newOrder]);
+                if (error) throw error;
+                showModal('Order Placed!', 'Your order has been successfully placed.');
+                orderForm.reset();
+                calculateTotalPrice();
+            } catch (e) {
+                showModal('Error', 'Error adding order: ' + e.message);
+                console.error("Error adding order: ", e);
+            }
         });
 
-        menuSelect.addEventListener('change', () => {
-            const selectedMenu = JSON.parse(menuSelect.value);
-            priceInput.value = selectedMenu.price.toFixed(2);
-            calculateTotalPrice();
-        });
-
-        countInput.addEventListener('input', calculateTotalPrice);
-        priceInput.addEventListener('input', calculateTotalPrice);
-        
-        menuForm.addEventListener('submit', (e) => {
+        menuForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const newMenuItem = newMenuItemInput.value.trim();
-            const newMenuPrice = parseFloat(newMenuPriceInput.value);
-            const menuDescription = menuDescriptionInput.value.trim();
-            
-            if (!newMenuItem || isNaN(newMenuPrice)) {
-                showMessage("Please enter a valid menu item and price.", "error");
-                return;
-            }
-            
-            const newMenu = {
-                item: newMenuItem,
-                price: newMenuPrice,
-                description: menuDescription,
+            const menuName = document.getElementById('menuName');
+            const menuPrice = document.getElementById('menuPrice');
+
+            const newItem = {
+                name: menuName.value,
+                price: parseFloat(menuPrice.value),
+                user_id: userId
             };
-            
-            saveMenuItem(newMenu);
-        });
 
-        generateDescriptionBtn.addEventListener('click', async () => {
-            const item = newMenuItemInput.value.trim();
-            if (!item) {
-                showMessage("Please enter a menu item first.", "error");
-                return;
+            try {
+                const { error } = await supabase.from('menus').insert([newItem]);
+                if (error) throw error;
+                showModal('Menu Item Added!', `${newItem.name} has been added to the menu.`);
+                menuForm.reset();
+            } catch (e) {
+                showModal('Error', 'Error adding menu item: ' + e.message);
+                console.error("Error adding menu item: ", e);
             }
-            menuDescriptionInput.placeholder = "Generating...";
-            menuDescriptionInput.disabled = true;
-            generateDescriptionBtn.disabled = true;
-            const description = await generateDescription(item);
-            menuDescriptionInput.value = description;
-            menuDescriptionInput.placeholder = "A rich, savory coconut milk rice served with...";
-            menuDescriptionInput.disabled = false;
-            generateDescriptionBtn.disabled = false;
         });
-        
-        // Use event delegation for the menu table buttons
-        menuTableBody.addEventListener('click', (e) => {
-            const target = e.target;
-            const id = target.getAttribute('data-id');
-            const row = target.closest('tr');
 
-            if (target.classList.contains('update-btn')) {
-                const newName = row.querySelector('[data-field="item"]').textContent.trim();
-                const newDesc = row.querySelector('[data-field="description"]').textContent.trim();
-                const newPrice = parseFloat(row.querySelector('[data-field="price"]').textContent.replace('RM', '').trim());
-
-                if (isNaN(newPrice) || !newName) {
-                    showMessage("Invalid name or price.", "error");
-                    return;
+        async function deleteOrder(id) {
+            showModal('Confirm Delete', 'Are you sure you want to delete this order?', () => {
+                try {
+                    supabase.from('orders').delete().eq('id', id).then(({ error }) => {
+                        if (error) throw error;
+                    });
+                } catch (e) {
+                    showModal('Error', 'Error deleting order: ' + e.message);
+                    console.error("Error deleting order: ", e);
                 }
-                updateMenuItem(id, { item: newName, description: newDesc, price: newPrice });
+            });
+        }
+        
+        async function editMenuItem(id, currentName) {
+            promptWithModal('Edit Menu Item', `Enter new name for "${currentName}":`, currentName, (newName) => {
+                if (newName) {
+                    try {
+                        supabase.from('menus').update({ name: newName }).eq('id', id).then(({ error }) => {
+                            if (error) throw error;
+                        });
+                    } catch (e) {
+                        showModal('Error', 'Error updating menu item: ' + e.message);
+                        console.error("Error updating menu item: ", e);
+                    }
+                }
+            });
+        }
 
-            } else if (target.classList.contains('delete-btn')) {
-                deleteMenuItem(id);
-            }
+        async function deleteMenuItem(id) {
+            showModal('Confirm Delete', 'Are you sure you want to delete this menu item?', () => {
+                try {
+                    supabase.from('menus').delete().eq('id', id).then(({ error }) => {
+                        if (error) throw error;
+                    });
+                } catch (e) {
+                    showModal('Error', 'Error deleting menu item: ' + e.message);
+                    console.error("Error deleting menu item: ", e);
+                }
+            });
+        }
+
+        reportPeriodSelect.addEventListener('change', (e) => {
+            generateSalesReport(e.target.value);
         });
 
-
-        summarizeOrdersBtn.addEventListener('click', summarizeOrders);
-
-        reportPeriodSelect.addEventListener('change', () => {
-            generateSalesReport(reportPeriodSelect.value);
-        });
-
+        // Navigation and View Management
         showOrderFormBtn.addEventListener('click', () => {
             ordersListSection.classList.add('hidden');
             manageMenuSection.classList.add('hidden');
             salesReportSection.classList.add('hidden');
             orderFormSection.classList.remove('hidden');
-            currentSortColumn = null;
-            currentSortDirection = 'asc';
-            document.querySelectorAll('th').forEach(th => th.className = th.className.split(' ').filter(c => !c.startsWith('sort-')).join(' '));
         });
 
         showMenusBtn.addEventListener('click', () => {
@@ -918,8 +544,8 @@
             manageMenuSection.classList.add('hidden');
             salesReportSection.classList.add('hidden');
             ordersListSection.classList.remove('hidden');
-            summaryContainer.classList.add('hidden');
-            sortTable('date');
+            // This line was removed in the previous update
+            // and is no longer needed since the entire section is hidden.
         });
 
         showSalesReportBtn.addEventListener('click', () => {
@@ -931,16 +557,80 @@
         });
 
         //--- INITIALIZATION ---
+        const initializeSupabase = async () => {
+            if (SUPABASE_URL === 'https://uachxufoteeegiyzsgol.supabase.co' || SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhY2h4dWZvdGVlZWdpeXpzZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0OTA2NTIsImV4cCI6MjA3MzA2NjY1Mn0.40dJrJglIUPSy2ksWL51MuJ5EU69zhTBVYt-bvV0f78') {
+                showModal('Configuration Required', 'Please create a Supabase project and replace the placeholder keys in the code to get started.');
+                return;
+            }
+
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log("Supabase client created successfully.");
+                
+                // For demonstration, use a random user ID
+                userId = crypto.randomUUID();
+                userIdDisplay.textContent = `User ID: ${userId}`;
+
+                // Setup real-time listeners for data
+                supabase.from('orders').on('INSERT', (payload) => {
+                    orders.push(payload.new);
+                    renderOrdersList();
+                }).on('UPDATE', (payload) => {
+                    const index = orders.findIndex(o => o.id === payload.new.id);
+                    if (index !== -1) orders[index] = payload.new;
+                    renderOrdersList();
+                }).on('DELETE', (payload) => {
+                    orders = orders.filter(o => o.id !== payload.old.id);
+                    renderOrdersList();
+                }).subscribe();
+
+                supabase.from('menus').on('INSERT', (payload) => {
+                    menuItems.push(payload.new);
+                    renderMenuItems();
+                    renderManageMenu();
+                }).on('UPDATE', (payload) => {
+                    const index = menuItems.findIndex(m => m.id === payload.new.id);
+                    if (index !== -1) menuItems[index] = payload.new;
+                    renderMenuItems();
+                    renderManageMenu();
+                }).on('DELETE', (payload) => {
+                    menuItems = menuItems.filter(m => m.id !== payload.old.id);
+                    renderMenuItems();
+                    renderManageMenu();
+                }).subscribe();
+                
+                // Initial data fetch
+                const { data: initialOrders, error: ordersError } = await supabase.from('orders').select('*').order('date', { ascending: false });
+                if (ordersError) throw ordersError;
+                orders = initialOrders;
+                renderOrdersList();
+                generateSalesReport(reportPeriodSelect.value);
+                
+                const { data: initialMenus, error: menusError } = await supabase.from('menus').select('*');
+                if (menusError) throw menusError;
+                menuItems = initialMenus;
+                renderMenuItems();
+                renderManageMenu();
+
+            } catch (error) {
+                console.error("Supabase Initialization Error:", error);
+                showModal('Initialization Error', `Failed to initialize Supabase: ${error.message}`);
+            }
+        };
+
         window.onload = () => {
-            initializeFirebase();
+            initializeSupabase();
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('orderDate').value = today;
             calculateTotalPrice();
         };
 
-        // Make the sortTable function available globally
+        // Make the functions available globally for `onclick` attributes
         window.sortTable = sortTable;
-
+        window.deleteOrder = deleteOrder;
+        window.editMenuItem = editMenuItem;
+        window.deleteMenuItem = deleteMenuItem;
+        
     </script>
 </body>
 </html>
