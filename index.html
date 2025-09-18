@@ -1,73 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Food Order System</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            transition: all 0.3s ease;
-        }
-        .container {
-            max-width: 90%;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .card {
-            background-color: #ffffff;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-        .btn {
-            @apply px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105;
-        }
-        .btn-primary {
-            @apply bg-orange-500 text-white shadow-lg;
-        }
-        .btn-secondary {
-            @apply bg-gray-200 text-gray-800 shadow-sm;
-        }
-        .hidden {
-            display: none;
-        }
-        .table-container {
-            overflow-x: auto;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        .data-table th, .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .data-table th {
-            background-color: #f9fafb;
-            font-weight: 600;
-            color: #1f2937;
-            cursor: pointer;
-        }
-        .data-table td {
-            color: #4b5563;
-        }
-        .data-table tbody tr:hover {
-            background-color: #f3f4f6;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; transition: all 0.3s ease; }
+        .container { max-width: 90%; margin: 0 auto; padding: 2rem 1rem; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background-color: #ffffff; border-radius: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05); padding:2rem; margin-bottom:2rem; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color .3s ease; }
+        .btn-primary { background-color: #ec4899; color: white; }
+        .btn-secondary { background-color: #EFC3CA; color: white; }
+        .btn-active { background-color: #ec4899; color: white; } /* pink */
+        .btn-active:hover { background-color: #db2777; }
+        .btn-primary:hover { background-color: #db2777; }
+        .btn-secondary:hover { background-color: #db2777; }
+        .hidden { display: none; }
+        .table-container { overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+        .data-table th, .data-table td { padding: 1rem; text-align:left; border-bottom: 1px solid #e5e7eb; }
+        .data-table th { background: #f9fafb; font-weight:600; color:#1f2937; cursor:pointer; }
+        .data-table td { color: #4b5563; }
+        .data-table tbody tr:hover { background-color: #f3f4f6; }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -77,13 +36,14 @@
 
     <div class="container bg-white p-8 rounded-2xl shadow-lg w-full max-w-4xl">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-orange-600">Food Order System</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-pink-600">Food Order System</h1>
             <p class="text-gray-500 mt-2">Manage your menus, orders, and sales report.</p>
             <p class="text-sm mt-2 text-gray-500" id="user-id-display">Loading user...</p>
         </header>
 
+        <!-- Navigation -->
         <nav class="flex justify-center space-x-4 mb-8">
-            <button id="showOrderFormBtn" class="btn btn-primary">Place New Order</button>
+            <button id="showOrderFormBtn" class="btn btn-secondary">Place New Order</button>
             <button id="showOrdersBtn" class="btn btn-secondary">View Orders</button>
             <button id="showMenusBtn" class="btn btn-secondary">Manage Menus</button>
             <button id="showSalesReportBtn" class="btn btn-secondary">Sales Report</button>
@@ -104,12 +64,11 @@
                 <div>
                     <label for="menuItems" class="block text-gray-700 font-medium mb-1">Menu Items</label>
                     <div id="menuItems" class="space-y-2">
-                        <!-- Menu items will be dynamically generated here -->
                         <p class="text-gray-500 text-center" id="menu-loading-text">Loading menu...</p>
                     </div>
                 </div>
                 <div class="mt-4">
-                    <label class="block text-gray-700 font-medium mb-1">Total Price: <span id="totalPrice" class="font-bold text-orange-600">$0.00</span></label>
+                    <label class="block text-gray-700 font-medium mb-1">Total Price: <span id="totalPrice" class="font-bold text-orange-600">RM 0.00</span></label>
                 </div>
                 <button type="submit" class="w-full btn btn-primary mt-6">Submit Order</button>
             </form>
@@ -135,9 +94,7 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <!-- Order data will be dynamically generated here -->
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
         </section>
@@ -146,9 +103,7 @@
         <section id="manageMenuSection" class="card hidden">
             <h2 class="text-2xl font-bold mb-6 text-gray-800">Manage Menus</h2>
             <p class="text-gray-500 text-center mb-4" id="menu-manage-loading-text">Loading menu...</p>
-            <div id="menuList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                <!-- Menu items will be dynamically generated here with edit/delete options -->
-            </div>
+            <div id="menuList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6"></div>
             <div class="space-y-4">
                 <h3 class="text-xl font-bold text-gray-800">Add New Menu Item</h3>
                 <form id="menuForm" class="space-y-4">
@@ -179,30 +134,26 @@
             <div id="summaryContainer" class="bg-gray-50 p-6 rounded-lg shadow-inner">
                 <div class="text-center">
                     <p class="text-gray-500 text-sm">Total Sales</p>
-                    <p id="totalSales" class="text-4xl font-bold text-orange-600 mt-1">$0.00</p>
+                    <p id="totalSales" class="text-4xl font-bold text-orange-600 mt-1">RM 0.00</p>
                 </div>
             </div>
             <div class="mt-8">
                 <h3 class="text-xl font-bold mb-4 text-gray-800">Top Selling Items</h3>
-                <ul id="topSellingItemsList" class="space-y-2">
-                    <!-- Top selling items will be dynamically generated here -->
-                </ul>
+                <ul id="topSellingItemsList" class="space-y-2"></ul>
             </div>
         </section>
 
-        <!-- Reusable Modal (for alerts, confirmations) -->
+        <!-- Modal -->
         <div id="modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
             <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
                 <div class="mt-3 text-center">
                     <h3 class="text-lg leading-6 font-medium text-gray-900" id="modalTitle"></h3>
                     <div class="mt-2 px-7 py-3">
                         <p class="text-sm text-gray-500" id="modalMessage"></p>
-                        <input type="text" id="modalInput" class="w-full mt-4 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 hidden">
+                        <input type="text" id="modalInput" class="w-full mt-4 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 hidden"/>
                     </div>
                     <div class="items-center px-4 py-3">
-                        <button id="modalConfirmBtn" class="px-4 py-2 bg-orange-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                            OK
-                        </button>
+                        <button id="modalConfirmBtn" class="px-4 py-2 bg-orange-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500">OK</button>
                     </div>
                 </div>
             </div>
@@ -212,27 +163,23 @@
     <script type="module">
         // --- SUPABASE CONFIG ---
         // IMPORTANT: Replace these with your Supabase Project URL and Public API Key
-        // You can find these in your Supabase dashboard under Project Settings > API
         const SUPABASE_URL = 'https://uachxufoteeegiyzsgol.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhY2h4dWZvdGVlZWdpeXpzZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0OTA2NTIsImV4cCI6MjA3MzA2NjY1Mn0.40dJrJglIUPSy2ksWL51MuJ5EU69zhTBVYt-bvV0f78';
-        
+
+        // Globals
         let supabase;
         let userId;
-
-        // Global variables for data
         let orders = [];
         let menuItems = [];
 
-        // Custom modal functions
+        // Modal helpers
         function showModal(title, message, onConfirm = () => {}) {
             const modal = document.getElementById('modal');
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalMessage').innerText = message;
             const confirmBtn = document.getElementById('modalConfirmBtn');
             const inputField = document.getElementById('modalInput');
-            
             inputField.classList.add('hidden');
-            
             confirmBtn.onclick = () => {
                 modal.classList.add('hidden');
                 onConfirm();
@@ -246,10 +193,8 @@
             document.getElementById('modalMessage').innerText = message;
             const confirmBtn = document.getElementById('modalConfirmBtn');
             const inputField = document.getElementById('modalInput');
-
             inputField.value = initialValue;
             inputField.classList.remove('hidden');
-            
             confirmBtn.onclick = () => {
                 modal.classList.add('hidden');
                 onConfirm(inputField.value);
@@ -257,12 +202,11 @@
             modal.classList.remove('hidden');
         }
 
-        // UI Element References
+        // DOM refs (script at end of body so elements exist)
         const orderFormSection = document.getElementById('orderFormSection');
         const ordersListSection = document.getElementById('ordersListSection');
         const manageMenuSection = document.getElementById('manageMenuSection');
         const salesReportSection = document.getElementById('salesReportSection');
-        const summaryContainer = document.getElementById('summaryContainer'); // This line is correct
 
         const showOrderFormBtn = document.getElementById('showOrderFormBtn');
         const showOrdersBtn = document.getElementById('showOrdersBtn');
@@ -284,10 +228,10 @@
         const reportPeriodSelect = document.getElementById('reportPeriodSelect');
         const userIdDisplay = document.getElementById('user-id-display');
 
-        // Functions to handle UI and data logic
+        // Render & utility functions
         function renderMenuItems() {
             menuItemsContainer.innerHTML = '';
-            if (menuItems.length === 0) {
+            if (!menuItems || menuItems.length === 0) {
                 menuItemsContainer.innerHTML = `<p class="text-gray-500 text-center">No menu items found. Add some in the "Manage Menus" section.</p>`;
             } else {
                 menuItems.forEach(item => {
@@ -298,7 +242,7 @@
                             <input type="checkbox" id="menuItem-${item.id}" data-price="${item.price}" class="menu-item-checkbox form-checkbox h-5 w-5 text-orange-600 rounded focus:ring-0">
                             <label for="menuItem-${item.id}" class="text-gray-800 font-medium">${item.name}</label>
                         </div>
-                        <span class="text-gray-600">$${item.price.toFixed(2)}</span>
+                        <span class="text-gray-600">RM ${Number(item.price).toFixed(2)}</span>
                     `;
                     menuItemsContainer.appendChild(itemDiv);
                 });
@@ -312,29 +256,35 @@
         function calculateTotalPrice() {
             let total = 0;
             document.querySelectorAll('.menu-item-checkbox:checked').forEach(checkbox => {
-                total += parseFloat(checkbox.dataset.price);
+                total += parseFloat(checkbox.dataset.price || 0);
             });
-            totalPriceEl.textContent = `$${total.toFixed(2)}`;
+            totalPriceEl.textContent = `RM ${total.toFixed(2)}`;
         }
 
         function renderOrdersList() {
             ordersTableBody.innerHTML = '';
-            if (orders.length === 0) {
+            if (!orders || orders.length === 0) {
                 ordersTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500">No orders found.</td></tr>`;
             } else {
                 const sortedOrders = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date));
                 sortedOrders.forEach((order) => {
+                    // handle items possibly stored as JSON string
+                    const itemsArr = typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [];
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td class="whitespace-nowrap">${order.date}</td>
                         <td>${order.customerName}</td>
-                        <td>${order.items.map(item => item.name).join(', ')}</td>
-                        <td class="font-bold">$${order.totalPrice.toFixed(2)}</td>
+                        <td>${itemsArr.map(i => i.name).join(', ')}</td>
+                        <td class="font-bold">RM ${Number(order.totalPrice || 0).toFixed(2)}</td>
                         <td class="whitespace-nowrap">
-                            <button onclick="deleteOrder('${order.id}')" class="text-red-500 hover:text-red-700 font-medium transition-colors duration-200">Delete</button>
+                            <button data-id="${order.id}" class="delete-order-btn text-red-500 hover:text-red-700 font-medium transition-colors duration-200">Delete</button>
                         </td>
                     `;
                     ordersTableBody.appendChild(row);
+                });
+                // wire delete buttons (delegation would be better but keep simple)
+                document.querySelectorAll('.delete-order-btn').forEach(btn => {
+                    btn.addEventListener('click', () => deleteOrder(btn.getAttribute('data-id')));
                 });
             }
             ordersLoadingText.classList.add('hidden');
@@ -342,7 +292,7 @@
 
         function renderManageMenu() {
             menuListContainer.innerHTML = '';
-            if (menuItems.length === 0) {
+            if (!menuItems || menuItems.length === 0) {
                 menuListContainer.innerHTML = `<p class="text-gray-500 text-center">No menu items found.</p>`;
             } else {
                 menuItems.forEach((item) => {
@@ -350,13 +300,20 @@
                     itemDiv.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'flex', 'flex-col', 'sm:flex-row', 'items-center', 'justify-between', 'space-y-2', 'sm:space-y-0');
                     itemDiv.innerHTML = `
                         <span class="font-medium text-gray-800">${item.name}</span>
-                        <span class="text-gray-600">$${item.price.toFixed(2)}</span>
+                        <span class="text-gray-600">RM ${Number(item.price).toFixed(2)}</span>
                         <div class="flex space-x-2">
-                            <button onclick="editMenuItem('${item.id}', '${item.name}')" class="px-3 py-1 bg-orange-200 text-orange-700 rounded-full text-sm hover:bg-orange-300">Edit</button>
-                            <button onclick="deleteMenuItem('${item.id}')" class="px-3 py-1 bg-red-200 text-red-700 rounded-full text-sm hover:bg-red-300">Delete</button>
+                            <button data-id="${item.id}" data-name="${item.name}" class="edit-menu-btn px-3 py-1 bg-orange-200 text-orange-700 rounded-full text-sm hover:bg-orange-300">Edit</button>
+                            <button data-id="${item.id}" class="delete-menu-btn px-3 py-1 bg-red-200 text-red-700 rounded-full text-sm hover:bg-red-300">Delete</button>
                         </div>
                     `;
                     menuListContainer.appendChild(itemDiv);
+                });
+                // wire up edit/delete buttons
+                document.querySelectorAll('.edit-menu-btn').forEach(btn => {
+                    btn.addEventListener('click', () => editMenuItem(btn.getAttribute('data-id'), btn.getAttribute('data-name')));
+                });
+                document.querySelectorAll('.delete-menu-btn').forEach(btn => {
+                    btn.addEventListener('click', () => deleteMenuItem(btn.getAttribute('data-id')));
                 });
             }
             menuManageLoadingText.classList.add('hidden');
@@ -369,34 +326,34 @@
                 startOfPeriod.setDate(today.getDate() - today.getDay());
             } else if (period === 'thisMonth') {
                 startOfPeriod.setDate(1);
+            } else { // today
+                startOfPeriod.setHours(0,0,0,0);
             }
-            startOfPeriod.setHours(0, 0, 0, 0);
+            startOfPeriod.setHours(0,0,0,0);
 
             let totalSales = 0;
             const itemSales = {};
-
             orders.forEach(order => {
                 const orderDate = new Date(order.date);
                 if (orderDate >= startOfPeriod) {
-                    totalSales += order.totalPrice;
-                    order.items.forEach(item => {
+                    totalSales += Number(order.totalPrice || 0);
+                    const itemsArr = typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [];
+                    itemsArr.forEach(item => {
                         itemSales[item.name] = (itemSales[item.name] || 0) + 1;
                     });
                 }
             });
-
-            totalSalesEl.textContent = `$${totalSales.toFixed(2)}`;
-
-            const sortedItems = Object.entries(itemSales).sort(([, countA], [, countB]) => countB - countA);
+            totalSalesEl.textContent = `RM ${totalSales.toFixed(2)}`;
+            const sortedItems = Object.entries(itemSales).sort(([,a],[,b]) => b - a);
             topSellingItemsList.innerHTML = '';
             if (sortedItems.length === 0) {
                 topSellingItemsList.innerHTML = '<li class="text-gray-500">No sales for this period.</li>';
             } else {
                 sortedItems.forEach(([name, count]) => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('bg-gray-100', 'p-2', 'rounded-lg');
-                    listItem.innerHTML = `<span class="font-medium">${name}</span> - ${count} sold`;
-                    topSellingItemsList.appendChild(listItem);
+                    const li = document.createElement('li');
+                    li.classList.add('bg-gray-100','p-2','rounded-lg');
+                    li.innerHTML = `<span class="font-medium">${name}</span> - ${count} sold`;
+                    topSellingItemsList.appendChild(li);
                 });
             }
         }
@@ -404,7 +361,6 @@
         function sortTable(column) {
             const isAscending = ordersTableBody.getAttribute('data-sort-order') !== 'asc';
             ordersTableBody.setAttribute('data-sort-order', isAscending ? 'asc' : 'desc');
-            
             const sortedOrders = [...orders].sort((a, b) => {
                 let valA = a[column];
                 let valB = b[column];
@@ -416,120 +372,118 @@
                 if (valA > valB) return isAscending ? 1 : -1;
                 return 0;
             });
-
             orders = sortedOrders;
             renderOrdersList();
         }
 
-        // Form Submission Handlers
+        // Form handlers
         orderForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const customerName = document.getElementById('customerName').value;
             const orderDate = document.getElementById('orderDate').value;
             const selectedItems = Array.from(document.querySelectorAll('.menu-item-checkbox:checked')).map(checkbox => {
-                const item = menuItems.find(mi => mi.id === checkbox.id.split('-')[1]);
-                return { name: item.name, price: item.price };
+                const id = checkbox.id.split('-')[1];
+                const item = menuItems.find(mi => String(mi.id) === String(id));
+                return { name: item ? item.name : 'Unknown', price: Number(item ? item.price : 0) };
             });
-            const totalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
-
+            const totalPrice = selectedItems.reduce((s, it) => s + Number(it.price || 0), 0);
             if (selectedItems.length === 0) {
                 showModal('Error', 'Please select at least one menu item.');
                 return;
             }
-
             const newOrder = {
-                customerName: customerName,
+                customerName,
                 date: orderDate,
-                items: JSON.stringify(selectedItems), // Store as JSON string for Supabase
-                totalPrice: totalPrice,
+                items: JSON.stringify(selectedItems),
+                totalPrice,
                 user_id: userId
             };
-            
             try {
                 const { error } = await supabase.from('orders').insert([newOrder]);
                 if (error) throw error;
                 showModal('Order Placed!', 'Your order has been successfully placed.');
                 orderForm.reset();
                 calculateTotalPrice();
-            } catch (e) {
-                showModal('Error', 'Error adding order: ' + e.message);
-                console.error("Error adding order: ", e);
+            } catch (err) {
+                showModal('Error', 'Error adding order: ' + (err.message || err));
+                console.error('Error adding order:', err);
             }
         });
 
         menuForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const menuName = document.getElementById('menuName');
-            const menuPrice = document.getElementById('menuPrice');
-
-            const newItem = {
-                name: menuName.value,
-                price: parseFloat(menuPrice.value),
-                user_id: userId
-            };
-
+            const menuName = document.getElementById('menuName').value;
+            const menuPrice = parseFloat(document.getElementById('menuPrice').value || 0);
+            const newItem = { name: menuName, price: menuPrice, user_id: userId };
             try {
                 const { error } = await supabase.from('menus').insert([newItem]);
                 if (error) throw error;
                 showModal('Menu Item Added!', `${newItem.name} has been added to the menu.`);
                 menuForm.reset();
-            } catch (e) {
-                showModal('Error', 'Error adding menu item: ' + e.message);
-                console.error("Error adding menu item: ", e);
+            } catch (err) {
+                showModal('Error', 'Error adding menu item: ' + (err.message || err));
+                console.error('Error adding menu item:', err);
             }
         });
 
+        // CRUD helpers
         async function deleteOrder(id) {
-            showModal('Confirm Delete', 'Are you sure you want to delete this order?', () => {
+            showModal('Confirm Delete', 'Are you sure you want to delete this order?', async () => {
                 try {
-                    supabase.from('orders').delete().eq('id', id).then(({ error }) => {
-                        if (error) throw error;
-                    });
-                } catch (e) {
-                    showModal('Error', 'Error deleting order: ' + e.message);
-                    console.error("Error deleting order: ", e);
+                    const { error } = await supabase.from('orders').delete().eq('id', id);
+                    if (error) throw error;
+                } catch (err) {
+                    showModal('Error', 'Error deleting order: ' + (err.message || err));
+                    console.error('Error deleting order:', err);
                 }
             });
         }
-        
-        async function editMenuItem(id, currentName) {
-            promptWithModal('Edit Menu Item', `Enter new name for "${currentName}":`, currentName, (newName) => {
-                if (newName) {
-                    try {
-                        supabase.from('menus').update({ name: newName }).eq('id', id).then(({ error }) => {
-                            if (error) throw error;
-                        });
-                    } catch (e) {
-                        showModal('Error', 'Error updating menu item: ' + e.message);
-                        console.error("Error updating menu item: ", e);
-                    }
+
+        function editMenuItem(id, currentName) {
+            promptWithModal('Edit Menu Item', `Enter new name for "${currentName}":`, currentName, async (newName) => {
+                if (!newName) return;
+                try {
+                    const { error } = await supabase.from('menus').update({ name: newName }).eq('id', id);
+                    if (error) throw error;
+                } catch (err) {
+                    showModal('Error', 'Error updating menu item: ' + (err.message || err));
+                    console.error('Error updating menu item:', err);
                 }
             });
         }
 
         async function deleteMenuItem(id) {
-            showModal('Confirm Delete', 'Are you sure you want to delete this menu item?', () => {
+            showModal('Confirm Delete', 'Are you sure you want to delete this menu item?', async () => {
                 try {
-                    supabase.from('menus').delete().eq('id', id).then(({ error }) => {
-                        if (error) throw error;
-                    });
-                } catch (e) {
-                    showModal('Error', 'Error deleting menu item: ' + e.message);
-                    console.error("Error deleting menu item: ", e);
+                    const { error } = await supabase.from('menus').delete().eq('id', id);
+                    if (error) throw error;
+                } catch (err) {
+                    showModal('Error', 'Error deleting menu item: ' + (err.message || err));
+                    console.error('Error deleting menu item:', err);
                 }
             });
         }
 
-        reportPeriodSelect.addEventListener('change', (e) => {
-            generateSalesReport(e.target.value);
-        });
+        // Active button helper
+        function setActiveButton(activeBtn) {
+            const buttons = [showOrderFormBtn, showOrdersBtn, showMenusBtn, showSalesReportBtn];
+            buttons.forEach(btn => {
+                btn.classList.remove('btn-active');
+                btn.classList.add('btn-secondary');
+            });
+            if (activeBtn) {
+                activeBtn.classList.remove('btn-secondary');
+                activeBtn.classList.add('btn-active');
+            }
+        }
 
-        // Navigation and View Management
+        // Navigation wiring
         showOrderFormBtn.addEventListener('click', () => {
             ordersListSection.classList.add('hidden');
             manageMenuSection.classList.add('hidden');
             salesReportSection.classList.add('hidden');
             orderFormSection.classList.remove('hidden');
+            setActiveButton(showOrderFormBtn);
         });
 
         showMenusBtn.addEventListener('click', () => {
@@ -537,6 +491,7 @@
             orderFormSection.classList.add('hidden');
             salesReportSection.classList.add('hidden');
             manageMenuSection.classList.remove('hidden');
+            setActiveButton(showMenusBtn);
         });
 
         showOrdersBtn.addEventListener('click', () => {
@@ -544,8 +499,7 @@
             manageMenuSection.classList.add('hidden');
             salesReportSection.classList.add('hidden');
             ordersListSection.classList.remove('hidden');
-            // This line was removed in the previous update
-            // and is no longer needed since the entire section is hidden.
+            setActiveButton(showOrdersBtn);
         });
 
         showSalesReportBtn.addEventListener('click', () => {
@@ -554,83 +508,90 @@
             ordersListSection.classList.add('hidden');
             salesReportSection.classList.remove('hidden');
             generateSalesReport(reportPeriodSelect.value);
+            setActiveButton(showSalesReportBtn);
         });
 
-        //--- INITIALIZATION ---
-        const initializeSupabase = async () => {
-            if (SUPABASE_URL === 'https://uachxufoteeegiyzsgol.supabase.co' || SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhY2h4dWZvdGVlZWdpeXpzZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0OTA2NTIsImV4cCI6MjA3MzA2NjY1Mn0.40dJrJglIUPSy2ksWL51MuJ5EU69zhTBVYt-bvV0f78') {
-                showModal('Configuration Required', 'Please create a Supabase project and replace the placeholder keys in the code to get started.');
-                return;
-            }
+        reportPeriodSelect.addEventListener('change', (e) => generateSalesReport(e.target.value));
 
+        // --- INITIALIZATION FUNCTION (must be defined before window.onload) ---
+        const initializeSupabase = async () => {
             try {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log("Supabase client created successfully.");
-                
-                // For demonstration, use a random user ID
+                console.log('Supabase client created successfully.');
+
+                // Use a random user ID for demo
                 userId = crypto.randomUUID();
                 userIdDisplay.textContent = `User ID: ${userId}`;
 
-                // Setup real-time listeners for data
-                supabase.from('orders').on('INSERT', (payload) => {
-                    orders.push(payload.new);
-                    renderOrdersList();
-                }).on('UPDATE', (payload) => {
-                    const index = orders.findIndex(o => o.id === payload.new.id);
-                    if (index !== -1) orders[index] = payload.new;
-                    renderOrdersList();
-                }).on('DELETE', (payload) => {
-                    orders = orders.filter(o => o.id !== payload.old.id);
-                    renderOrdersList();
-                }).subscribe();
+                // Realtime: orders
+                supabase.channel('orders-changes')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+                        // payload.eventType may be 'INSERT'|'UPDATE'|'DELETE'
+                        if (payload.eventType === 'INSERT' || payload.event === 'INSERT') {
+                            orders.push(payload.new);
+                        } else if (payload.eventType === 'UPDATE' || payload.event === 'UPDATE') {
+                            const idx = orders.findIndex(o => o.id === payload.new.id);
+                            if (idx !== -1) orders[idx] = payload.new;
+                        } else if (payload.eventType === 'DELETE' || payload.event === 'DELETE') {
+                            orders = orders.filter(o => o.id !== payload.old.id);
+                        }
+                        renderOrdersList();
+                        generateSalesReport(reportPeriodSelect.value);
+                    })
+                    .subscribe();
 
-                supabase.from('menus').on('INSERT', (payload) => {
-                    menuItems.push(payload.new);
-                    renderMenuItems();
-                    renderManageMenu();
-                }).on('UPDATE', (payload) => {
-                    const index = menuItems.findIndex(m => m.id === payload.new.id);
-                    if (index !== -1) menuItems[index] = payload.new;
-                    renderMenuItems();
-                    renderManageMenu();
-                }).on('DELETE', (payload) => {
-                    menuItems = menuItems.filter(m => m.id !== payload.old.id);
-                    renderMenuItems();
-                    renderManageMenu();
-                }).subscribe();
-                
-                // Initial data fetch
+                // Realtime: menus
+                supabase.channel('menus-changes')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'menus' }, payload => {
+                        if (payload.eventType === 'INSERT' || payload.event === 'INSERT') {
+                            menuItems.push(payload.new);
+                        } else if (payload.eventType === 'UPDATE' || payload.event === 'UPDATE') {
+                            const index = menuItems.findIndex(m => m.id === payload.new.id);
+                            if (index !== -1) menuItems[index] = payload.new;
+                        } else if (payload.eventType === 'DELETE' || payload.event === 'DELETE') {
+                            menuItems = menuItems.filter(m => m.id !== payload.old.id);
+                        }
+                        renderMenuItems();
+                        renderManageMenu();
+                    })
+                    .subscribe();
+
+                // Initial fetch orders
                 const { data: initialOrders, error: ordersError } = await supabase.from('orders').select('*').order('date', { ascending: false });
                 if (ordersError) throw ordersError;
-                orders = initialOrders;
+                orders = initialOrders || [];
                 renderOrdersList();
-                generateSalesReport(reportPeriodSelect.value);
-                
+
+                // Initial fetch menus
                 const { data: initialMenus, error: menusError } = await supabase.from('menus').select('*');
                 if (menusError) throw menusError;
-                menuItems = initialMenus;
+                menuItems = initialMenus || [];
                 renderMenuItems();
                 renderManageMenu();
 
+                // Generate initial sales report
+                generateSalesReport(reportPeriodSelect.value);
+
             } catch (error) {
-                console.error("Supabase Initialization Error:", error);
-                showModal('Initialization Error', `Failed to initialize Supabase: ${error.message}`);
+                console.error('Supabase Initialization Error:', error);
+                showModal('Initialization Error', `Failed to initialize Supabase: ${error.message || error}`);
             }
         };
 
-        window.onload = () => {
-            initializeSupabase();
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('orderDate').value = today;
-            calculateTotalPrice();
-        };
-
-        // Make the functions available globally for `onclick` attributes
+        // Safe public exports for inline handlers (some code used inline onclicks)
         window.sortTable = sortTable;
         window.deleteOrder = deleteOrder;
         window.editMenuItem = editMenuItem;
         window.deleteMenuItem = deleteMenuItem;
-        
+
+        // Run on load
+        window.addEventListener('load', () => {
+            initializeSupabase();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('orderDate').value = today;
+            calculateTotalPrice();
+            setActiveButton(showOrderFormBtn); // default active
+        });
     </script>
 </body>
 </html>
