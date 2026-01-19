@@ -234,17 +234,17 @@ orderForm.addEventListener('submit', async (e) => {
     const customerName = document.getElementById('customerName').value;
     const orderDate = document.getElementById('orderDate').value;
     
-    // Direct extraction from HTML to ensure data matches the UI
+    // 1. Grab items and prices directly from the HTML elements
     const selectedItems = Array.from(document.querySelectorAll('.menu-item-checkbox:checked')).map(checkbox => {
-        // Find the label associated with this checkbox for the name
+        // Get name from the <label> next to the checkbox
         const label = document.querySelector(`label[for="${checkbox.id}"]`).innerText;
-        return { 
-            name: label, 
-            price: Number(checkbox.dataset.price || 0) 
-        };
+        // Get price from data-price attribute and ensure it is a number
+        const price = parseFloat(checkbox.dataset.price || 0);
+        
+        return { name: label, price: price };
     });
 
-    // Calculate total from the extracted prices
+    // 2. Calculate total and ensure it's a Number (for your numeric column)
     const totalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
 
     if (selectedItems.length === 0) {
@@ -255,20 +255,20 @@ orderForm.addEventListener('submit', async (e) => {
     const newOrder = {
         customerName: customerName,
         date: orderDate,
-        items: selectedItems, // Send as Array (your column is jsonb)
-        totalPrice: totalPrice,
+        items: selectedItems, // JSONB column takes this array directly
+        totalPrice: totalPrice, // Numeric column takes this number
         user_id: userId
     };
 
     try {
         const { error } = await supabase.from('orders').insert([newOrder]);
         if (error) throw error;
+        
         showModal('Order Placed!', 'Your order has been successfully placed.');
         orderForm.reset();
-        calculateTotalPrice();
+        calculateTotalPrice(); // Resets display to RM 0.00
     } catch (err) {
-        showModal('Error', 'Error adding order: ' + (err.message || err));
-        console.error('Error adding order:', err);
+        showModal('Error', 'Submission failed: ' + err.message);
     }
 });
 
@@ -456,6 +456,7 @@ window.addEventListener('load', () => {
     setActiveButton(showOrderFormBtn); // default active
 
 });
+
 
 
 
