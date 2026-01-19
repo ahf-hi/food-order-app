@@ -228,13 +228,13 @@ orderForm.addEventListener('submit', async (e) => {
         showModal('Error', 'Please select at least one menu item.');
         return;
     }
-    const newOrder = {
-        customerName,
-        date: orderDate,
-        items: JSON.stringify(selectedItems),
-        totalPrice,
-        user_id: userId
-    };
+const newOrder = {
+    "customerName": customerName,
+    "date": orderDate,
+    "items": selectedItems, // Removed JSON.stringify because your column is 'jsonb'
+    "totalPrice": totalPrice,
+    "user_id": userId
+};
     try {
         const { error } = await supabase.from('orders').insert([newOrder]);
         if (error) throw error;
@@ -431,3 +431,4 @@ window.addEventListener('load', () => {
     setActiveButton(showOrderFormBtn); // default active
 
 });
+
