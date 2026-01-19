@@ -1,7 +1,7 @@
 // --- SUPABASE CONFIG ---
 // IMPORTANT: Replace these with your Supabase Project URL and Public API Key
-const SUPABASE_URL = 'https://uachxufoteeegiyzsgol.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhY2h4dWZvdGVlZWdpeXpzZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0OTA2NTIsImV4cCI6MjA3MzA2NjY1Mn0.40dJrJglIUPSy2ksWL51MuJ5EU69zhTBVYt-bvV0f78';
+const SUPABASE_URL = 'https://jkzqplyvqeqegqhejppo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprenFwbHl2cWVxZWdxaGVqcHBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTIzMzEsImV4cCI6MjA4NDM2ODMzMX0.LCEJ4JR2-ZhR_iKnrgnzhnVVznbDknKR73_mR5kCQt8';
 
 // Globals
 let supabase;
@@ -429,4 +429,5 @@ window.addEventListener('load', () => {
     document.getElementById('orderDate').value = today;
     calculateTotalPrice();
     setActiveButton(showOrderFormBtn); // default active
+
 });
