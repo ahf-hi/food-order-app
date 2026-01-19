@@ -10,6 +10,6 @@ jobs:
     steps:
       - name: Ping Database
         run: |
-          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/your_table_name?select=*" \
+          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/menus?select=*" \
           -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
           -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
