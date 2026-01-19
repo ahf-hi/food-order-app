@@ -105,6 +105,12 @@ function renderOrdersList() {
     } else {
         const sortedOrders = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date));
         sortedOrders.forEach((order) => {
+
+            // This handles both old stringified data and new direct-object data
+const itemsArr = Array.isArray(order.items) 
+    ? order.items 
+    : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
+            
             // handle items possibly stored as JSON string
             const itemsArr = typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [];
             const row = document.createElement('tr');
@@ -157,6 +163,11 @@ function renderManageMenu() {
 }
 
 function generateSalesReport(period) {
+
+    const itemsArr = Array.isArray(order.items) 
+    ? order.items 
+    : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
+    
     const today = new Date();
     const startOfPeriod = new Date();
     if (period === 'thisWeek') {
@@ -216,25 +227,36 @@ function sortTable(column) {
 // Form handlers
 orderForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
     const customerName = document.getElementById('customerName').value;
     const orderDate = document.getElementById('orderDate').value;
+    
+    // Direct extraction from HTML to ensure data matches the UI
     const selectedItems = Array.from(document.querySelectorAll('.menu-item-checkbox:checked')).map(checkbox => {
-        const id = checkbox.id.split('-')[1];
-        const item = menuItems.find(mi => String(mi.id) === String(id));
-        return { name: item ? item.name : 'Unknown', price: Number(item ? item.price : 0) };
+        // Find the label associated with this checkbox for the name
+        const label = document.querySelector(`label[for="${checkbox.id}"]`).innerText;
+        return { 
+            name: label, 
+            price: Number(checkbox.dataset.price || 0) 
+        };
     });
-    const totalPrice = selectedItems.reduce((s, it) => s + Number(it.price || 0), 0);
+
+    // Calculate total from the extracted prices
+    const totalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
+
     if (selectedItems.length === 0) {
         showModal('Error', 'Please select at least one menu item.');
         return;
     }
-const newOrder = {
-    "customerName": customerName,
-    "date": orderDate,
-    "items": selectedItems, // Removed JSON.stringify because your column is 'jsonb'
-    "totalPrice": totalPrice,
-    "user_id": userId
-};
+
+    const newOrder = {
+        customerName: customerName,
+        date: orderDate,
+        items: selectedItems, // Send as Array (your column is jsonb)
+        totalPrice: totalPrice,
+        user_id: userId
+    };
+
     try {
         const { error } = await supabase.from('orders').insert([newOrder]);
         if (error) throw error;
@@ -431,4 +453,5 @@ window.addEventListener('load', () => {
     setActiveButton(showOrderFormBtn); // default active
 
 });
+
 
