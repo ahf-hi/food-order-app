@@ -6,23 +6,19 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let userId = 'Ashikin';
 let orders = [];
 let menuItems = [];
-
-// --- DOM REFS ---
-const sections = ['orderFormSection', 'ordersListSection', 'manageMenuSection', 'salesReportSection', 'orderSummarySection'];
-const totalPriceEl = document.getElementById('totalPrice');
-const deliveryFeeInput = document.getElementById('deliveryFee');
-const summaryDateInput = document.getElementById('summaryDate');
+window.currentSummaryType = 'customer';
 
 // --- INITIALIZE ---
-window.onload = async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('orderDate').value = today;
-    summaryDateInput.value = today;
-    
+    document.getElementById('summaryDate').value = today;
+    document.getElementById('user-id-display').textContent = `User ID: ${userId}`;
+
     setupSalesReportFilters();
     await fetchData();
     setupRealtime();
-};
+});
 
 async function fetchData() {
     const { data: o } = await supabase.from('orders').select('*').order('date', { ascending: false });
@@ -36,184 +32,33 @@ function setupRealtime() {
     supabase.channel('any').on('postgres_changes', { event: '*', schema: 'public' }, () => fetchData()).subscribe();
 }
 
-// --- NAVIGATION ---
-function showSection(id) {
-    sections.forEach(s => document.getElementById(s).classList.add('hidden'));
+// --- NAV & TABS ---
+window.showSection = (id) => {
+    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
-    // Update nav colors
-    document.querySelectorAll('nav button').forEach(btn => btn.className = 'px-4 py-2 rounded-lg bg-gray-200');
-}
-
-document.getElementById('showOrderFormBtn').onclick = () => showSection('orderFormSection');
-document.getElementById('showOrdersBtn').onclick = () => showSection('ordersListSection');
-document.getElementById('showMenusBtn').onclick = () => showSection('manageMenuSection');
-document.getElementById('showSalesReportBtn').onclick = () => { showSection('salesReportSection'); generateSalesReport(); };
-document.getElementById('showSummaryBtn').onclick = () => { showSection('orderSummarySection'); renderOrderSummary('customer'); };
-
-// --- MENU MANAGEMENT (EDIT NAME & PRICE) ---
-function renderManageMenu() {
-    const container = document.getElementById('menuList');
-    container.innerHTML = menuItems.map(item => `
-        <div class="bg-gray-50 p-4 rounded-lg flex justify-between items-center border">
-            <div>
-                <p class="font-bold">${item.name}</p>
-                <p class="text-sm text-gray-500">RM ${Number(item.price).toFixed(2)}</p>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="openEditMenu('${item.id}', '${item.name}', ${item.price})" class="text-blue-600 font-medium">Edit</button>
-                <button onclick="deleteMenuItem('${item.id}')" class="text-red-500">Delete</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-window.openEditMenu = (id, name, price) => {
-    const modal = document.getElementById('modal');
-    const container = document.getElementById('modalInputContainer');
-    document.getElementById('modalTitle').innerText = "Edit Menu Item";
-    document.getElementById('modalMessage').innerText = "Update details for " + name;
-    container.classList.remove('hidden');
-    document.getElementById('modalInput1').value = name;
-    document.getElementById('modalInput2').value = price;
     
-    document.getElementById('modalConfirmBtn').onclick = async () => {
-        const newName = document.getElementById('modalInput1').value;
-        const newPrice = parseFloat(document.getElementById('modalInput2').value);
-        await supabase.from('menus').update({ name: newName, price: newPrice }).eq('id', id);
-        modal.classList.add('hidden');
-        container.classList.add('hidden');
-    };
-    modal.classList.remove('hidden');
+    // Style buttons
+    const btns = { 'orderFormSection': 'navOrder', 'ordersListSection': 'navView', 'orderSummarySection': 'navSummary', 'manageMenuSection': 'navMenu', 'salesReportSection': 'navSales' };
+    document.querySelectorAll('nav button').forEach(b => { b.classList.remove('bg-orange-500', 'text-white'); b.classList.add('bg-gray-200', 'text-gray-700'); });
+    document.getElementById(btns[id]).classList.add('bg-orange-500', 'text-white');
+
+    if(id === 'salesReportSection') generateSalesReport();
+    if(id === 'orderSummarySection') renderOrderSummary(window.currentSummaryType);
 };
 
-// --- ORDER LOGIC ---
-deliveryFeeInput.oninput = calculateTotalPrice;
-
-function calculateTotalPrice() {
-    let subtotal = 0;
-    document.querySelectorAll('.menu-item-checkbox:checked').forEach(cb => subtotal += parseFloat(cb.dataset.price));
-    const delivery = parseFloat(deliveryFeeInput.value || 0);
-    totalPriceEl.innerText = `RM ${(subtotal + delivery).toFixed(2)}`;
+// --- RENDERERS ---
+function renderAll() {
+    renderMenuCheckboxes();
+    renderManageMenu();
+    renderOrdersTable();
 }
 
-document.getElementById('orderForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const selected = Array.from(document.querySelectorAll('.menu-item-checkbox:checked')).map(cb => ({
-        name: cb.dataset.name,
-        price: parseFloat(cb.dataset.price)
-    }));
-    
-    const delivery = parseFloat(deliveryFeeInput.value || 0);
-    const subtotal = selected.reduce((s, i) => s + i.price, 0);
-
-    const { error } = await supabase.from('orders').insert([{
-        customerName: document.getElementById('customerName').value,
-        date: document.getElementById('orderDate').value,
-        items: selected,
-        deliveryFee: delivery,
-        totalPrice: subtotal + delivery,
-        user_id: userId
-    }]);
-
-    if (!error) {
-        alert("Order Placed!");
-        e.target.reset();
-        calculateTotalPrice();
-    }
-};
-
-// --- ORDER SUMMARY ---
-document.getElementById('sumByCustomerBtn').onclick = () => renderOrderSummary('customer');
-document.getElementById('sumByMenuBtn').onclick = () => renderOrderSummary('menu');
-summaryDateInput.onchange = () => renderOrderSummary(window.currentSummaryType || 'customer');
-
-function renderOrderSummary(type) {
-    window.currentSummaryType = type;
-    const date = summaryDateInput.value;
-    const filtered = orders.filter(o => o.date === date);
-    const display = document.getElementById('summaryDisplay');
-    
-    if (type === 'customer') {
-        display.innerHTML = filtered.length ? filtered.map(o => `
-            <div class="border-b py-2">
-                <p class="font-bold">${o.customerName}</p>
-                <p class="text-sm text-gray-600">${o.items.map(i => i.name).join(', ')}</p>
-            </div>
-        `).join('') : "No orders for this date.";
-    } else {
-        const counts = {};
-        filtered.forEach(o => o.items.forEach(i => counts[i.name] = (counts[i.name] || 0) + 1));
-        display.innerHTML = Object.keys(counts).length ? Object.entries(counts).map(([name, qty]) => `
-            <div class="flex justify-between border-b py-2">
-                <span>${name}</span>
-                <span class="font-bold">x ${qty}</span>
-            </div>
-        `).join('') : "No prep needed for this date.";
-    }
-}
-
-// --- SALES REPORT (MONTHLY/YEARLY) ---
-function setupSalesReportFilters() {
-    const monthSel = document.getElementById('reportMonth');
-    const yearSel = document.getElementById('reportYear');
-    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    
-    monthSel.innerHTML = `<option value="all">All Months</option>` + months.map((m, i) => `<option value="${i}">${m}</option>`).join('');
-    const curYear = new Date().getFullYear();
-    for(let y = curYear; y >= curYear-2; y--) yearSel.innerHTML += `<option value="${y}">${y}</option>`;
-    
-    monthSel.value = new Date().getMonth();
-    monthSel.onchange = generateSalesReport;
-    yearSel.onchange = generateSalesReport;
-}
-
-function generateSalesReport() {
-    const selMonth = document.getElementById('reportMonth').value;
-    const selYear = parseInt(document.getElementById('reportYear').value);
-    
-    let total = 0;
-    const itemSales = {};
-
-    orders.forEach(o => {
-        const d = new Date(o.date);
-        const matchYear = d.getFullYear() === selYear;
-        const matchMonth = selMonth === "all" || d.getMonth() === parseInt(selMonth);
-        
-        if (matchYear && matchMonth) {
-            total += Number(o.totalPrice);
-            o.items.forEach(i => itemSales[i.name] = (itemSales[i.name] || 0) + 1);
-        }
-    });
-
-    document.getElementById('totalSales').innerText = `RM ${total.toFixed(2)}`;
-    document.getElementById('topSellingItemsList').innerHTML = Object.entries(itemSales)
-        .sort((a,b) => b[1] - a[1])
-        .map(([n, c]) => `<li class="flex justify-between border-b p-2"><span>${n}</span><b>${c} sold</b></li>`).join('');
-}
-
-// --- VIEW ORDERS TABLE ---
-function renderOrdersList() {
-    const body = document.querySelector('#ordersTable tbody');
-    body.innerHTML = orders.map(o => `
-        <tr class="hover:bg-gray-50 border-b">
-            <td class="p-3">${o.date}</td>
-            <td class="p-3">${o.customerName}</td>
-            <td class="p-3 text-sm">${o.items.map(i => i.name).join(', ')}</td>
-            <td class="p-3">RM ${Number(o.deliveryFee || 0).toFixed(2)}</td>
-            <td class="p-3 font-bold">RM ${Number(o.totalPrice).toFixed(2)}</td>
-            <td class="p-3"><button onclick="deleteOrder('${o.id}')" class="text-red-500">Delete</button></td>
-        </tr>
-    `).join('');
-}
-
-// --- SHARED RENDERS ---
-function renderMenuItems() {
+function renderMenuCheckboxes() {
     const container = document.getElementById('menuItems');
     container.innerHTML = menuItems.map(item => `
-        <div class="flex items-center justify-between p-2 hover:bg-gray-50">
+        <div class="flex items-center justify-between p-2 border-b last:border-0">
             <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" class="menu-item-checkbox w-5 h-5" 
-                       data-price="${item.price}" data-name="${item.name}" onchange="calculateTotalPrice()">
+                <input type="checkbox" class="menu-item-checkbox w-5 h-5 accent-orange-500" data-price="${item.price}" data-name="${item.name}" onchange="calculateTotalPrice()">
                 <span>${item.name}</span>
             </label>
             <span class="text-gray-500">RM ${Number(item.price).toFixed(2)}</span>
@@ -221,11 +66,135 @@ function renderMenuItems() {
     `).join('');
 }
 
-function renderAll() {
-    renderMenuItems();
-    renderManageMenu();
-    renderOrdersList();
+function renderManageMenu() {
+    const container = document.getElementById('menuList');
+    container.innerHTML = menuItems.map(item => `
+        <div class="bg-gray-50 p-4 rounded-lg flex justify-between items-center border">
+            <div><p class="font-bold">${item.name}</p><p class="text-sm text-green-600">RM ${Number(item.price).toFixed(2)}</p></div>
+            <div class="flex gap-2">
+                <button onclick="openEditMenu('${item.id}', '${item.name}', ${item.price})" class="text-blue-600 font-bold">Edit</button>
+                <button onclick="deleteMenuItem('${item.id}')" class="text-red-500 font-bold">Delete</button>
+            </div>
+        </div>
+    `).join('');
 }
 
-window.deleteMenuItem = async (id) => { if(confirm("Delete item?")) await supabase.from('menus').delete().eq('id', id); };
+function renderOrdersTable() {
+    const body = document.getElementById('ordersTableBody');
+    body.innerHTML = orders.map(o => `
+        <tr class="hover:bg-gray-50 border-b text-sm">
+            <td class="p-3">${o.date}</td>
+            <td class="p-3 font-bold">${o.customerName}</td>
+            <td class="p-3 text-gray-600">${o.items.map(i => i.name).join(', ')}</td>
+            <td class="p-3 text-gray-500">RM ${Number(o.deliveryFee || 0).toFixed(2)}</td>
+            <td class="p-3 font-bold text-pink-600">RM ${Number(o.totalPrice).toFixed(2)}</td>
+            <td class="p-3"><button onclick="deleteOrder('${o.id}')" class="text-red-400">Delete</button></td>
+        </tr>
+    `).join('');
+}
+
+// --- ORDER SUMMARY ---
+window.renderOrderSummary = (type) => {
+    window.currentSummaryType = type;
+    const date = document.getElementById('summaryDate').value;
+    const filtered = orders.filter(o => o.date === date);
+    const container = document.getElementById('summaryDisplay');
+    
+    if (type === 'customer') {
+        container.innerHTML = filtered.length ? filtered.map(o => `
+            <div class="mb-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                <p class="font-bold text-lg text-blue-800">${o.customerName}</p>
+                <p class="text-gray-600">Items: ${o.items.map(i => i.name).join(', ')}</p>
+                <p class="text-sm font-bold mt-1">Total: RM ${Number(o.totalPrice).toFixed(2)}</p>
+            </div>
+        `).join('') : "No orders for this date.";
+    } else {
+        const counts = {};
+        filtered.forEach(o => o.items.forEach(i => counts[i.name] = (counts[i.name] || 0) + 1));
+        container.innerHTML = Object.keys(counts).length ? Object.entries(counts).map(([name, qty]) => `
+            <div class="flex justify-between border-b py-3 px-2">
+                <span class="font-medium">${name}</span>
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold">QTY: ${qty}</span>
+            </div>
+        `).join('') : "Nothing to prepare.";
+    }
+};
+
+// --- SALES REPORT ---
+function setupSalesReportFilters() {
+    const mSel = document.getElementById('reportMonth');
+    const ySel = document.getElementById('reportYear');
+    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    mSel.innerHTML = months.map((m, i) => `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`).join('');
+    const yr = new Date().getFullYear();
+    ySel.innerHTML = [yr, yr-1, yr-2].map(y => `<option value="${y}">${y}</option>`).join('');
+}
+
+window.generateSalesReport = () => {
+    const m = parseInt(document.getElementById('reportMonth').value);
+    const y = parseInt(document.getElementById('reportYear').value);
+    let total = 0;
+    const itemSales = {};
+
+    orders.forEach(o => {
+        const d = new Date(o.date);
+        if (d.getMonth() === m && d.getFullYear() === y) {
+            total += Number(o.totalPrice);
+            o.items.forEach(i => itemSales[i.name] = (itemSales[i.name] || 0) + 1);
+        }
+    });
+
+    document.getElementById('totalSalesDisplay').innerText = `RM ${total.toFixed(2)}`;
+    document.getElementById('topSellingItemsList').innerHTML = Object.entries(itemSales)
+        .sort((a,b) => b[1]-a[1]).map(([n, c]) => `<li class="flex justify-between p-2 bg-gray-50 rounded"><span>${n}</span><b>${c} sold</b></li>`).join('');
+};
+
+// --- ACTIONS & MODALS ---
+window.calculateTotalPrice = () => {
+    let sub = 0;
+    document.querySelectorAll('.menu-item-checkbox:checked').forEach(cb => sub += parseFloat(cb.dataset.price));
+    const del = parseFloat(document.getElementById('deliveryFee').value || 0);
+    document.getElementById('totalPriceDisplay').innerText = `RM ${(sub + del).toFixed(2)}`;
+};
+
+document.getElementById('orderForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const items = Array.from(document.querySelectorAll('.menu-item-checkbox:checked')).map(cb => ({ name: cb.dataset.name, price: parseFloat(cb.dataset.price) }));
+    if(!items.length) return alert("Select an item");
+    const delivery = parseFloat(document.getElementById('deliveryFee').value || 0);
+    const total = items.reduce((s, i) => s + i.price, 0) + delivery;
+
+    await supabase.from('orders').insert([{
+        customerName: document.getElementById('customerName').value,
+        date: document.getElementById('orderDate').value,
+        items, deliveryFee: delivery, totalPrice: total, user_id: userId
+    }]);
+    e.target.reset();
+    calculateTotalPrice();
+    alert("Order Saved!");
+};
+
+document.getElementById('menuForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('menuName').value;
+    const price = parseFloat(document.getElementById('menuPrice').value);
+    await supabase.from('menus').insert([{ name, price, user_id: userId }]);
+    e.target.reset();
+};
+
+window.openEditMenu = (id, name, price) => {
+    document.getElementById('modal').classList.remove('hidden');
+    document.getElementById('editNameInput').value = name;
+    document.getElementById('editPriceInput').value = price;
+    document.getElementById('modalConfirmBtn').onclick = async () => {
+        await supabase.from('menus').update({ 
+            name: document.getElementById('editNameInput').value, 
+            price: parseFloat(document.getElementById('editPriceInput').value) 
+        }).eq('id', id);
+        closeModal();
+    };
+};
+
+window.closeModal = () => document.getElementById('modal').classList.add('hidden');
+window.deleteMenuItem = async (id) => { if(confirm("Delete menu?")) await supabase.from('menus').delete().eq('id', id); };
 window.deleteOrder = async (id) => { if(confirm("Delete order?")) await supabase.from('orders').delete().eq('id', id); };
