@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Food Order System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-10">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <div class="container bg-white p-8 rounded-2xl shadow-lg w-full max-w-5xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-pink-600">Food Order System</h1>
+            <p class="text-sm mt-2 text-gray-500" id="user-id-display">Loading user...</p>
+        </header>
+
+        <nav class="flex flex-wrap justify-center gap-2 mb-8">
+            <button id="showOrderFormBtn" class="px-4 py-2 rounded-lg bg-orange-500 text-white">New Order</button>
+            <button id="showOrdersBtn" class="px-4 py-2 rounded-lg bg-gray-200">View Orders</button>
+            <button id="showSummaryBtn" class="px-4 py-2 rounded-lg bg-gray-200">Order Summary</button>
+            <button id="showMenusBtn" class="px-4 py-2 rounded-lg bg-gray-200">Manage Menus</button>
+            <button id="showSalesReportBtn" class="px-4 py-2 rounded-lg bg-gray-200">Sales Report</button>
+        </nav>
+
+        <section id="orderFormSection" class="space-y-4">
+            <h2 class="text-2xl font-bold text-gray-800">Place New Order</h2>
+            <form id="orderForm" class="space-y-4 bg-gray-50 p-6 rounded-xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium">Customer Name</label>
+                        <input type="text" id="customerName" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium">Order Date</label>
+                        <input type="date" id="orderDate" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Menu Items</label>
+                    <div id="menuItems" class="space-y-2 max-h-60 overflow-y-auto p-2 border rounded-lg bg-white"></div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium">Delivery Fee (RM)</label>
+                    <input type="number" id="deliveryFee" step="0.01" value="0.00" class="w-full px-4 py-2 border rounded-lg">
+                </div>
+                <div class="text-right text-xl font-bold text-orange-600">
+                    Grand Total: <span id="totalPrice">RM 0.00</span>
+                </div>
+                <button type="submit" class="w-full py-3 bg-pink-600 text-white rounded-lg font-bold hover:bg-pink-700">Submit Order</button>
+            </form>
+        </section>
+
+        <section id="ordersListSection" class="hidden">
+            <h2 class="text-2xl font-bold mb-4">View Orders</h2>
+            <div class="overflow-x-auto">
+                <table id="ordersTable" class="w-full text-left border-collapse bg-white">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="p-3 border">Date</th>
+                            <th class="p-3 border">Customer</th>
+                            <th class="p-3 border">Items</th>
+                            <th class="p-3 border">Delivery</th>
+                            <th class="p-3 border">Total</th>
+                            <th class="p-3 border">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="orderSummarySection" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold">Order Summary</h2>
+            <div class="flex gap-4 p-4 bg-orange-50 rounded-lg">
+                <button id="sumByCustomerBtn" class="px-4 py-2 bg-orange-500 text-white rounded">By Customer</button>
+                <button id="sumByMenuBtn" class="px-4 py-2 bg-gray-300 rounded">By Menu Items</button>
+                <input type="date" id="summaryDate" class="px-4 py-2 border rounded">
+            </div>
+            <div id="summaryDisplay" class="bg-white p-4 border rounded-lg"></div>
+        </section>
+
+        <section id="manageMenuSection" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold">Manage Menus</h2>
+            <div id="menuList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <form id="menuForm" class="p-6 bg-gray-50 rounded-xl space-y-4">
+                <h3 class="font-bold">Add New Item</h3>
+                <input type="text" id="menuName" placeholder="Item Name" class="w-full px-4 py-2 border rounded" required>
+                <input type="number" id="menuPrice" placeholder="Price" step="0.01" class="w-full px-4 py-2 border rounded" required>
+                <button type="submit" class="w-full py-2 bg-green-600 text-white rounded">Add to Menu</button>
+            </form>
+        </section>
+
+        <section id="salesReportSection" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold text-gray-800">Sales Report</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <label class="block font-bold">View by Month</label>
+                    <select id="reportMonth" class="w-full p-2 border rounded"></select>
+                </div>
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <label class="block font-bold">View by Year</label>
+                    <select id="reportYear" class="w-full p-2 border rounded"></select>
+                </div>
+            </div>
+            <div class="text-center p-8 bg-gray-800 text-white rounded-2xl">
+                <p class="text-gray-400">Total Revenue</p>
+                <p id="totalSales" class="text-5xl font-bold text-green-400">RM 0.00</p>
+            </div>
+            <div id="topSellingContainer" class="p-6 bg-white border rounded-xl">
+                <h3 class="font-bold mb-4">Preparation Leaderboard</h3>
+                <ul id="topSellingItemsList" class="space-y-2"></ul>
+            </div>
+        </section>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-xl max-w-sm w-full">
+            <h3 id="modalTitle" class="text-xl font-bold mb-2"></h3>
+            <p id="modalMessage" class="text-gray-600 mb-4"></p>
+            <div id="modalInputContainer" class="hidden space-y-2 mb-4">
+                <input type="text" id="modalInput1" class="w-full border p-2 rounded" placeholder="Name">
+                <input type="number" id="modalInput2" class="w-full border p-2 rounded" placeholder="Price" step="0.01">
+            </div>
+            <div class="flex gap-2">
+                <button id="modalConfirmBtn" class="flex-1 py-2 bg-orange-500 text-white rounded">Confirm</button>
+                <button onclick="document.getElementById('modal').classList.add('hidden')" class="flex-1 py-2 bg-gray-200 rounded">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
