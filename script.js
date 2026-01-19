@@ -105,14 +105,11 @@ function renderOrdersList() {
     } else {
         const sortedOrders = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date));
         sortedOrders.forEach((order) => {
+            // Correctly handle both old (string) and new (object) data
+            const itemsArr = Array.isArray(order.items) 
+                ? order.items 
+                : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
 
-            // This handles both old stringified data and new direct-object data
-const itemsArr = Array.isArray(order.items) 
-    ? order.items 
-    : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
-            
-            // handle items possibly stored as JSON string
-            const itemsArr = typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [];
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="whitespace-nowrap">${order.date}</td>
@@ -125,7 +122,8 @@ const itemsArr = Array.isArray(order.items)
             `;
             ordersTableBody.appendChild(row);
         });
-        // wire delete buttons (delegation would be better but keep simple)
+
+        // Wire up delete buttons
         document.querySelectorAll('.delete-order-btn').forEach(btn => {
             btn.addEventListener('click', () => deleteOrder(btn.getAttribute('data-id')));
         });
@@ -163,13 +161,9 @@ function renderManageMenu() {
 }
 
 function generateSalesReport(period) {
-
-    const itemsArr = Array.isArray(order.items) 
-    ? order.items 
-    : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
-    
     const today = new Date();
     const startOfPeriod = new Date();
+    
     if (period === 'thisWeek') {
         startOfPeriod.setDate(today.getDate() - today.getDay());
     } else if (period === 'thisMonth') {
@@ -181,19 +175,28 @@ function generateSalesReport(period) {
 
     let totalSales = 0;
     const itemSales = {};
+
     orders.forEach(order => {
         const orderDate = new Date(order.date);
         if (orderDate >= startOfPeriod) {
             totalSales += Number(order.totalPrice || 0);
-            const itemsArr = typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [];
+            
+            // Logic must be INSIDE the loop to access individual 'order' data
+            const itemsArr = Array.isArray(order.items) 
+                ? order.items 
+                : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
+
             itemsArr.forEach(item => {
                 itemSales[item.name] = (itemSales[item.name] || 0) + 1;
             });
         }
     });
+
     totalSalesEl.textContent = `RM ${totalSales.toFixed(2)}`;
+    
     const sortedItems = Object.entries(itemSales).sort(([,a],[,b]) => b - a);
     topSellingItemsList.innerHTML = '';
+    
     if (sortedItems.length === 0) {
         topSellingItemsList.innerHTML = '<li class="text-gray-500">No sales for this period.</li>';
     } else {
@@ -453,5 +456,6 @@ window.addEventListener('load', () => {
     setActiveButton(showOrderFormBtn); // default active
 
 });
+
 
 
