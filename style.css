@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #f3f4f6; 
+    transition: all 0.3s ease; 
+}
+
+.container { 
+    max-width: 90%; 
+    margin: 0 auto; 
+    padding: 2rem 1rem; 
+    animation: fadeIn 0.5s ease-in-out; 
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(-20px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+.card { 
+    background-color: #ffffff; 
+    border-radius: 1.5rem; 
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05); 
+    padding: 2rem; 
+    margin-bottom: 2rem; 
+}
+
+.btn { 
+    padding: 10px 20px; 
+    border: none; 
+    border-radius: 12px; 
+    font-size: 14px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+}
+
+.btn-primary { background-color: #ec4899; color: white; }
+.btn-secondary { background-color: #EFC3CA; color: white; }
+.btn-active { background-color: #ec4899; color: white; }
+
+.btn:hover { transform: translateY(-1px); filter: brightness(90%); }
+
+.hidden { display: none; }
+
+/* Table Styling */
+.table-container { overflow-x: auto; border-radius: 1rem; }
+.data-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.data-table th, .data-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+.data-table th { background: #f9fafb; font-weight: 600; color: #1f2937; }
+.data-table tbody tr:hover { background-color: #fff1f2; }
+
+/* Specific logic styles */
+.text-negative { color: #ef4444 !important; font-weight: 800; }
+.bg-profit { background-color: #059669; }
+.bg-grocery { background-color: #dc2626; }
