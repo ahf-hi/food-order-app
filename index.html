@@ -101,13 +101,13 @@
             <section id="salesReportSection" class="hidden">
                 <div class="flex justify-between items-center mb-6">
                     <h2 id="reportTitle" class="text-2xl font-bold">Monthly Sales</h2>
-                    <div id="reportFilters" class="flex gap-2">
+                    <div class="flex gap-2">
                         <select id="reportMonth" class="p-2 border rounded shadow-sm" onchange="generateSalesReport()"></select>
                         <select id="reportYear" class="p-2 border rounded shadow-sm" onchange="generateSalesReport()"></select>
                     </div>
                 </div>
-                
-                <div class="bg-pink-600 text-white p-12 rounded-3xl text-center mb-4 shadow-xl shadow-pink-200">
+
+                <div class="bg-pink-600 text-white p-12 rounded-3xl text-center mb-6 shadow-xl shadow-pink-200">
                     <p class="uppercase text-xs font-bold tracking-widest opacity-80">Total Revenue</p>
                     <h2 id="totalSalesDisplay" class="text-6xl font-black mt-2">RM 0.00</h2>
                 </div>
@@ -116,6 +116,9 @@
                     <button id="btnWeeklyReport" onclick="setReportView('weekly')" class="btn btn-secondary">Weekly Sale</button>
                     <button id="btnMonthlyReport" onclick="setReportView('monthly')" class="btn btn-primary">Monthly Report</button>
                 </div>
+
+                <div id="weeklyBreakdown" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                    </div>
 
                 <div class="card p-6 border shadow-none bg-white">
                     <h3 class="font-bold text-gray-500 uppercase text-xs border-b pb-3 mb-4">Unit Sales Performance</h3>
