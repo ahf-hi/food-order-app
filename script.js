@@ -2,13 +2,12 @@
 var DB_URL = 'https://jkzqplyvqeqegqhejppo.supabase.co';
 var DB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprenFwbHl2cWVxZWdxaGVqcHBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTIzMzEsImV4cCI6MjA4NDM2ODMzMX0.LCEJ4JR2-ZhR_iKnrgnzhnVVznbDknKR73_mR5kCQt8'; 
 
-var supabase = window.supabase.createClient(DB_URL, DB_KEY);
+const supabase = window.supabase.createClient(DB_URL, DB_KEY);
 
 let userId = 'Ashikin';
 let orders = [];
 let menuItems = [];
 window.currentSummaryType = 'customer';
-let currentReportView = 'monthly';
 
 // --- INITIALIZE APP ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -33,6 +32,7 @@ async function fetchData() {
         orders = o || [];
         menuItems = m || [];
         renderAll();
+        // Update sales report if that section is currently visible
         if(!document.getElementById('salesReportSection').classList.contains('hidden')) generateSalesReport();
     } catch (err) {
         console.error("Fetch Error:", err);
@@ -52,6 +52,7 @@ window.showSection = (id) => {
     
     updateNavButtons(id);
 
+    // Load sales data automatically when clicking tab
     if(id === 'salesReportSection') generateSalesReport();
     if(id === 'orderSummarySection') renderOrderSummary(window.currentSummaryType);
 };
@@ -193,7 +194,7 @@ window.renderOrderSummary = (type) => {
     }
 };
 
-// --- SALES REPORT & CALENDAR LOGIC ---
+// --- SALES REPORT LOGIC ---
 function setupSalesReportFilters() {
     const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     const mSel = document.getElementById('reportMonth');
@@ -205,28 +206,13 @@ function setupSalesReportFilters() {
     }
 }
 
-window.setReportView = (view) => {
-    currentReportView = view;
-    const btnWeekly = document.getElementById('btnWeeklyReport');
-    const btnMonthly = document.getElementById('btnMonthlyReport');
-    const weeklyDiv = document.getElementById('weeklyBreakdown');
-    if (view === 'weekly') {
-        btnWeekly.className = 'btn btn-primary'; btnMonthly.className = 'btn btn-secondary';
-        weeklyDiv.classList.remove('hidden');
-    } else {
-        btnWeekly.className = 'btn btn-secondary'; btnMonthly.className = 'btn btn-primary';
-        weeklyDiv.classList.add('hidden');
-    }
-    generateSalesReport();
-};
-
 window.generateSalesReport = () => {
     const m = parseInt(document.getElementById('reportMonth').value);
     const y = parseInt(document.getElementById('reportYear').value);
     let totalMonthly = 0;
     const itemSales = {};
 
-    // 1. Calculate items for performance (always based on month)
+    // 1. Process orders for the selected month
     orders.forEach(o => {
         const d = new Date(o.date);
         if (d.getMonth() === m && d.getFullYear() === y) {
@@ -235,10 +221,13 @@ window.generateSalesReport = () => {
         }
     });
 
-    // 2. Weekly Calendar Breakdown
-    if (currentReportView === 'weekly') {
-        const weeks = getWeeksInMonth(y, m);
-        const weeklyDiv = document.getElementById('weeklyBreakdown');
+    // Update main Monthly Display
+    document.getElementById('totalSalesDisplay').innerText = `RM ${totalMonthly.toFixed(2)}`;
+
+    // 2. Generate Weekly Breakdown (Always Loaded)
+    const weeks = getWeeksInMonth(y, m);
+    const weeklyDiv = document.getElementById('weeklyBreakdown');
+    if (weeklyDiv) {
         weeklyDiv.innerHTML = weeks.map((week, idx) => {
             let weekRev = 0;
             orders.forEach(o => {
@@ -246,15 +235,16 @@ window.generateSalesReport = () => {
                 const ot = new Date(od.getFullYear(), od.getMonth(), od.getDate()).getTime();
                 if (ot >= week.start.getTime() && ot <= week.end.getTime()) weekRev += Number(o.totalPrice);
             });
-            return `<div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm hover:shadow-md transition-shadow">
-                <p class="text-pink-600 font-black text-xs uppercase">Week ${idx + 1}</p>
-                <p class="text-gray-400 text-[10px] mb-2 font-bold">${week.start.toLocaleDateString('en-GB')} - ${week.end.toLocaleDateString('en-GB')}</p>
-                <p class="text-2xl font-black text-gray-800">RM ${weekRev.toFixed(2)}</p>
-            </div>`;
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm">
+                    <p class="text-pink-600 font-black text-xs uppercase">Week ${idx + 1}</p>
+                    <p class="text-gray-400 text-[10px] mb-2 font-bold">${week.start.toLocaleDateString('en-GB')} - ${week.end.toLocaleDateString('en-GB')}</p>
+                    <p class="text-2xl font-black text-gray-800">RM ${weekRev.toFixed(2)}</p>
+                </div>`;
         }).join('');
     }
 
-    document.getElementById('totalSalesDisplay').innerText = `RM ${totalMonthly.toFixed(2)}`;
+    // 3. Update Performance List (At bottom)
     const topList = document.getElementById('topSellingItemsList');
     if(topList) {
         topList.innerHTML = Object.entries(itemSales).sort((a,b) => b[1]-a[1]).map(([n, q]) => `
