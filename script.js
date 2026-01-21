@@ -2,7 +2,7 @@
 var DB_URL = 'https://jkzqplyvqeqegqhejppo.supabase.co';
 var DB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprenFwbHl2cWVxZWdxaGVqcHBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTIzMzEsImV4cCI6MjA4NDM2ODMzMX0.LCEJ4JR2-ZhR_iKnrgnzhnVVznbDknKR73_mR5kCQt8'; 
 
-const supabase = window.supabase.createClient(DB_URL, DB_KEY);
+var supabase = window.supabase.createClient(DB_URL, DB_KEY);
 
 let userId = 'Ashikin';
 let orders = [];
