@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Food Order System</title>
+    <link rel="icon" type="image/png" href="images/icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <div class="container">
+        <div class="card">
+            <header class="text-center mb-8">
+                <h1 class="text-4xl font-black text-pink-600">Food Order System</h1>
+                <p id="user-id-display" class="text-gray-500 mt-2 font-medium">Initializing...</p>
+            </header>
+
+            <nav class="flex flex-wrap justify-center gap-2 mb-10 border-b pb-6">
+                <button id="navOrder" onclick="showSection('orderFormSection')" class="btn btn-active">New Order</button>
+                <button id="navView" onclick="showSection('ordersListSection')" class="btn btn-secondary">View Orders</button>
+                <button id="navSummary" onclick="showSection('orderSummarySection')" class="btn btn-secondary">Order Summary</button>
+                <button id="navMenu" onclick="showSection('manageMenuSection')" class="btn btn-secondary">Manage Menus</button>
+                <button id="navSales" onclick="showSection('salesReportSection')" class="btn btn-secondary">Sales Report</button>
+            </nav>
+
+            <section id="orderFormSection">
+                <form id="orderForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold mb-1">Customer Name</label>
+                            <input type="text" id="customerName" class="w-full p-3 border rounded shadow-sm focus:ring-2 focus:ring-pink-500 outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block font-bold mb-1">Order Date</label>
+                            <input type="date" id="orderDate" class="w-full p-3 border rounded shadow-sm focus:ring-2 focus:ring-pink-500 outline-none" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold mb-2 text-gray-700">Menu Selection & Quantity</label>
+                        <div id="menuItems" class="space-y-3 p-4 border rounded bg-gray-50 max-h-80 overflow-y-auto"></div>
+                    </div>
+
+                    <div class="w-full md:w-1/3">
+                        <label class="block font-bold mb-1 text-gray-700">Delivery Fee (RM)</label>
+                        <input type="number" id="deliveryFee" step="1" value="0" class="w-full p-3 border rounded shadow-sm focus:ring-2 focus:ring-pink-500 outline-none" oninput="calculateTotalPrice()">
+                    </div>
+
+                    <div class="text-right border-t pt-6">
+                        <p class="text-3xl font-black text-pink-600">Grand Total: <span id="totalPriceDisplay">RM 0.00</span></p>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full py-4 mt-4 shadow-lg text-lg">Place Order</button>
+                </form>
+            </section>
+
+            <section id="ordersListSection" class="hidden">
+                <h2 class="text-2xl font-bold mb-4">Order History</h2>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Items (Qty)</th>
+                                <th>Delivery</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="orderSummarySection" class="hidden">
+                <div class="flex flex-wrap gap-4 mb-8 items-center bg-pink-50 p-4 rounded-xl">
+                    <button onclick="renderOrderSummary('customer')" class="btn btn-primary">By Customer</button>
+                    <button onclick="renderOrderSummary('menu')" class="btn btn-secondary">By Prep Count</button>
+                    <input type="date" id="summaryDate" class="p-2 border rounded ml-auto" onchange="renderOrderSummary(window.currentSummaryType)">
+                </div>
+                <div id="summaryDisplay" class="space-y-6"></div>
+            </section>
+
+            <section id="manageMenuSection" class="hidden">
+                <div id="menuList" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"></div>
+                <div class="p-6 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                    <h3 class="font-bold mb-4 text-gray-600 uppercase text-sm">Add New Menu Item</h3>
+                    <form id="menuForm" class="flex flex-wrap gap-4">
+                        <input type="text" id="menuName" placeholder="Item Name" class="flex-grow p-3 border rounded-lg" required>
+                        <input type="number" id="menuPrice" placeholder="RM 0.00" step="0.01" class="w-32 p-3 border rounded-lg" required>
+                        <button type="submit" class="btn btn-primary">Save Item</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="salesReportSection" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="reportTitle" class="text-2xl font-bold">Monthly Sales</h2>
+                    <div id="reportFilters" class="flex gap-2">
+                        <select id="reportMonth" class="p-2 border rounded shadow-sm" onchange="generateSalesReport()"></select>
+                        <select id="reportYear" class="p-2 border rounded shadow-sm" onchange="generateSalesReport()"></select>
+                    </div>
+                </div>
+                
+                <div class="bg-pink-600 text-white p-12 rounded-3xl text-center mb-4 shadow-xl shadow-pink-200">
+                    <p class="uppercase text-xs font-bold tracking-widest opacity-80">Total Revenue</p>
+                    <h2 id="totalSalesDisplay" class="text-6xl font-black mt-2">RM 0.00</h2>
+                </div>
+
+                <div class="flex gap-4 mb-8 justify-center">
+                    <button id="btnWeeklyReport" onclick="setReportView('weekly')" class="btn btn-secondary">Weekly Sale</button>
+                    <button id="btnMonthlyReport" onclick="setReportView('monthly')" class="btn btn-primary">Monthly Report</button>
+                </div>
+
+                <div class="card p-6 border shadow-none bg-white">
+                    <h3 class="font-bold text-gray-500 uppercase text-xs border-b pb-3 mb-4">Unit Sales Performance</h3>
+                    <ul id="topSellingItemsList" class="space-y-3"></ul>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-8 rounded-3xl max-w-sm w-full shadow-2xl">
+            <h3 class="text-xl font-bold mb-4">Edit Menu Item</h3>
+            <div class="space-y-4">
+                <input type="text" id="editNameInput" class="w-full border p-3 rounded-xl" placeholder="Name">
+                <input type="number" id="editPriceInput" class="w-full border p-3 rounded-xl" placeholder="Price" step="0.01">
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button id="modalConfirmBtn" class="btn btn-primary flex-1">Save</button>
+                <button onclick="closeModal()" class="btn btn-secondary flex-1 text-gray-700">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
