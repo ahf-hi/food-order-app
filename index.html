@@ -12,8 +12,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <div class="container">
-        <div class="card">
+    <div class="container mx-auto p-4 max-w-5xl">
+        <div class="card bg-white p-6 rounded-3xl shadow-sm">
             <header class="text-center mb-8">
                 <h1 class="text-4xl font-black text-pink-600">Food Order System</h1>
                 <p id="user-id-display" class="text-gray-500 mt-2 font-medium">Initializing...</p>
@@ -42,8 +42,7 @@
 
                     <div>
                         <label class="block font-bold mb-2 text-gray-700">Menu Selection & Quantity</label>
-                        <div id="menuItems" class="space-y-3 p-4 border rounded bg-gray-50 max-h-80 overflow-y-auto">
-                            </div>
+                        <div id="menuItems" class="space-y-3 p-4 border rounded bg-gray-50 max-h-80 overflow-y-auto"></div>
                     </div>
 
                     <div class="w-full md:w-1/3">
@@ -61,16 +60,16 @@
 
             <section id="ordersListSection" class="hidden">
                 <h2 class="text-2xl font-bold mb-4">Order History</h2>
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
+                <div class="table-container overflow-x-auto">
+                    <table class="data-table w-full text-left">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th>Date</th>
-                                <th>Customer</th>
-                                <th>Items (Qty)</th>
-                                <th>Delivery</th>
-                                <th>Total</th>
-                                <th>Actions</th>
+                                <th class="p-4">Date</th>
+                                <th class="p-4">Customer</th>
+                                <th class="p-4">Items (Qty)</th>
+                                <th class="p-4">Delivery</th>
+                                <th class="p-4">Total</th>
+                                <th class="p-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="ordersTableBody"></tbody>
@@ -89,13 +88,18 @@
 
             <section id="manageMenuSection" class="hidden">
                 <div id="menuList" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"></div>
-                <div class="p-6 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                <div class="p-6 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 mb-8">
                     <h3 class="font-bold mb-4 text-gray-600 uppercase text-sm">Add New Menu Item</h3>
                     <form id="menuForm" class="flex flex-wrap gap-4">
                         <input type="text" id="menuName" placeholder="Item Name" class="flex-grow p-3 border rounded-lg" required>
                         <input type="number" id="menuPrice" placeholder="RM 0.00" step="0.01" class="w-32 p-3 border rounded-lg" required>
                         <button type="submit" class="btn btn-primary">Save Item</button>
                     </form>
+                </div>
+
+                <div class="card p-6 border shadow-none bg-white rounded-2xl">
+                    <h3 class="font-bold text-gray-500 uppercase text-xs border-b pb-3 mb-4">Unit Sales Performance</h3>
+                    <ul id="topSellingItemsList" class="space-y-3"></ul>
                 </div>
             </section>
 
@@ -107,13 +111,36 @@
                         <select id="reportYear" class="p-2 border rounded shadow-sm" onchange="generateSalesReport()"></select>
                     </div>
                 </div>
-                <div class="bg-pink-600 text-white p-12 rounded-3xl text-center mb-8 shadow-xl shadow-pink-200">
-                    <p class="uppercase text-xs font-bold tracking-widest opacity-80">Total Revenue</p>
-                    <h2 id="totalSalesDisplay" class="text-6xl font-black mt-2">RM 0.00</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-pink-600 text-white p-6 rounded-3xl text-center shadow-lg">
+                        <p class="uppercase text-[10px] font-bold tracking-widest opacity-80">Monthly Revenue</p>
+                        <h2 id="totalSalesDisplay" class="text-3xl font-black mt-1">RM 0.00</h2>
+                    </div>
+                    <div class="bg-red-500 text-white p-6 rounded-3xl text-center shadow-lg">
+                        <p class="uppercase text-[10px] font-bold tracking-widest opacity-80">Groceries</p>
+                        <h2 id="totalGroceriesDisplay" class="text-3xl font-black mt-1">RM 0.00</h2>
+                    </div>
+                    <div class="bg-green-600 text-white p-6 rounded-3xl text-center shadow-lg">
+                        <p class="uppercase text-[10px] font-bold tracking-widest opacity-80">Monthly Profit</p>
+                        <h2 id="totalProfitDisplay" class="text-3xl font-black mt-1">RM 0.00</h2>
+                    </div>
                 </div>
-                <div class="card p-6 border shadow-none bg-white">
-                    <h3 class="font-bold text-gray-500 uppercase text-xs border-b pb-3 mb-4">Unit Sales Performance</h3>
-                    <ul id="topSellingItemsList" class="space-y-3"></ul>
+
+                <h3 class="font-bold text-gray-800 uppercase text-sm mb-4">Weekly Sales Breakdown</h3>
+                <div id="weeklyBreakdown" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-10"></div>
+
+                <div class="p-6 bg-white border-2 border-red-100 rounded-3xl shadow-sm">
+                    <h3 class="font-bold mb-4 text-red-600 uppercase text-xs tracking-wider">Add Grocery Purchase</h3>
+                    <form id="groceryForm" class="flex flex-wrap gap-4">
+                        <div class="flex-grow">
+                            <input type="date" id="groceryDate" class="w-full p-3 border rounded-lg" required>
+                        </div>
+                        <div class="w-40">
+                            <input type="number" id="groceryAmount" step="0.01" placeholder="Amount RM" class="w-full p-3 border rounded-lg" required>
+                        </div>
+                        <button type="submit" class="bg-red-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-600 transition-colors">Add Purchase</button>
+                    </form>
                 </div>
             </section>
         </div>
