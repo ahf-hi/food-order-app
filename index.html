@@ -7,70 +7,72 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <div class="mx-auto p-4 max-w-6xl container">
-        <div class="card bg-white p-6 rounded-3xl shadow-sm">
+    <div class="mx-auto p-4 max-w-6xl">
+        <div class="card bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
             <header class="text-center mb-8">
-                <h1 class="text-4xl font-black text-pink-600 tracking-tighter">Food Order System</h1>
-                <p id="user-id-display" class="text-gray-400 mt-2 font-bold uppercase text-xs tracking-widest">System Online • Ashikin</p>
+                <h1 class="text-3xl font-semibold text-gray-800 tracking-tight">Food Order System</h1>
+                <p id="user-id-display" class="text-gray-400 mt-1 text-sm">System Online • Ashikin</p>
             </header>
 
-            <nav class="flex flex-wrap justify-center gap-2 mb-10 border-b pb-6">
+            <nav class="flex flex-wrap justify-center gap-3 mb-10 border-b border-gray-100 pb-6">
                 <button id="navOrder" onclick="showSection('orderFormSection')" class="btn btn-active">New Order</button>
-                <button id="navView" onclick="showSection('ordersListSection')" class="btn btn-secondary">View Orders</button>
-                <button id="navSummary" onclick="showSection('orderSummarySection')" class="btn btn-secondary">Order Summary</button>
-                <button id="navMenu" onclick="showSection('manageMenuSection')" class="btn btn-secondary">Manage Menus</button>
-                <button id="navSales" onclick="showSection('salesReportSection')" class="btn btn-secondary">Sales Report</button>
+                <button id="navView" onclick="showSection('ordersListSection')" class="btn btn-secondary">History</button>
+                <button id="navSummary" onclick="showSection('orderSummarySection')" class="btn btn-secondary">Summary</button>
+                <button id="navMenu" onclick="showSection('manageMenuSection')" class="btn btn-secondary">Menu Lab</button>
+                <button id="navSales" onclick="showSection('salesReportSection')" class="btn btn-secondary">Financials</button>
             </nav>
 
             <section id="orderFormSection">
                 <form id="orderForm" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block font-bold mb-1 text-gray-700">Customer Name</label>
-                            <input type="text" id="customerName" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-pink-400" placeholder="Enter name..." required>
+                            <label class="block text-sm font-medium text-gray-500 mb-2">Customer Name</label>
+                            <input type="text" id="customerName" class="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-100 outline-none" placeholder="Who is ordering?" required>
                         </div>
                         <div>
-                            <label class="block font-bold mb-1 text-gray-700">Order Date</label>
-                            <input type="date" id="orderDate" class="w-full p-3 border rounded-xl" required>
+                            <label class="block text-sm font-medium text-gray-500 mb-2">Order Date</label>
+                            <input type="date" id="orderDate" class="w-full p-3 border border-gray-200 rounded-xl" required>
                         </div>
                     </div>
+                    
                     <div>
-                        <label class="block font-bold mb-2 text-gray-700">Menu Items (Active Only)</label>
-                        <div id="menuItems" class="p-6 border rounded-2xl bg-gray-50 max-h-[500px] overflow-y-auto">
+                        <label class="block text-sm font-medium text-gray-500 mb-3">Menu Selection</label>
+                        <div id="menuItems" class="p-6 border border-gray-100 rounded-2xl bg-gray-50 max-h-[500px] overflow-y-auto">
                         </div>
                     </div>
-                    <div class="w-full md:w-1/3">
-                        <label class="block font-bold mb-1 text-gray-700">Delivery Fee (RM)</label>
-                        <input type="number" id="deliveryFee" step="1" value="0" class="w-full p-3 border rounded-xl" oninput="calculateTotalPrice()">
+
+                    <div class="w-full md:w-1/4">
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Delivery Fee (RM)</label>
+                        <input type="number" id="deliveryFee" step="1" value="0" class="w-full p-3 border border-gray-200 rounded-xl text-pink-600 font-semibold" oninput="calculateTotalPrice()">
                     </div>
-                    <div class="text-right border-t pt-6">
-                        <p class="text-3xl font-black text-pink-600">Grand Total: <span id="totalPriceDisplay">RM 0.00</span></p>
+
+                    <div class="text-right border-t border-gray-50 pt-6">
+                        <p class="text-2xl font-semibold text-gray-800">Total <span id="totalPriceDisplay" class="text-pink-600 ml-2">RM 0.00</span></p>
                     </div>
-                    <button type="submit" class="btn btn-primary w-full py-4 mt-4 shadow-lg text-lg uppercase tracking-widest">Place Order</button>
+
+                    <button type="submit" class="btn btn-primary w-full py-4 mt-2 shadow-sm text-base">Confirm Order</button>
                 </form>
             </section>
 
             <section id="ordersListSection" class="hidden">
                 <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-800">Orders & Groceries</h2>
-                    </div>
-                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                        <input type="text" id="orderSearch" placeholder="Search customer..." class="p-3 border rounded-xl flex-grow md:w-64" oninput="renderAll()">
-                        <input type="date" id="orderViewDate" class="p-3 border rounded-xl" onchange="renderAll()">
+                    <h2 class="text-xl font-semibold text-gray-800">Order History</h2>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <input type="text" id="orderSearch" placeholder="Search customer..." class="p-2 border border-gray-200 rounded-lg text-sm flex-grow md:w-48" oninput="renderAll()">
+                        <input type="date" id="orderViewDate" class="p-2 border border-gray-200 rounded-lg text-sm" onchange="renderAll()">
                     </div>
                 </div>
-                <div class="table-container shadow-sm border">
+                <div class="table-container border border-gray-100 rounded-xl overflow-hidden">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Date</th>
                                 <th>Customer</th>
                                 <th>Items</th>
-                                <th>Delivery</th>
+                                <th>Deliv.</th>
                                 <th>Total</th>
                                 <th class="text-center">Action</th>
                             </tr>
@@ -81,113 +83,104 @@
             </section>
 
             <section id="orderSummarySection" class="hidden">
-                <div class="flex flex-wrap gap-4 mb-8 items-center bg-pink-50 p-4 rounded-xl">
-                    <button onclick="renderOrderSummary('customer')" class="btn btn-primary">By Customer</button>
-                    <button onclick="renderOrderSummary('menu')" class="btn btn-secondary">By Prep Count</button>
-                    <input type="date" id="summaryDate" class="p-2 border rounded-xl ml-auto" onchange="renderOrderSummary(window.currentSummaryType)">
+                <div class="flex flex-wrap gap-3 mb-8 items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <button onclick="renderOrderSummary('customer')" class="btn btn-primary text-xs px-4">By Customer</button>
+                    <button onclick="renderOrderSummary('menu')" class="btn btn-secondary text-xs px-4">By Item Count</button>
+                    <input type="date" id="summaryDate" class="p-2 border border-gray-200 rounded-lg text-xs ml-auto" onchange="renderOrderSummary(window.currentSummaryType)">
                 </div>
                 <div id="summaryDisplay" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </section>
 
             <section id="manageMenuSection" class="hidden">
-                <div class="p-6 bg-white border-2 border-dashed border-pink-100 rounded-3xl mb-10">
-                    <h3 class="font-bold mb-4 text-pink-400 uppercase text-xs tracking-widest">Add New Menu Item</h3>
-                    <form id="menuForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <input type="text" id="menuName" placeholder="Item Name" class="p-3 border rounded-xl" required>
-                        <input type="number" id="menuPrice" placeholder="Price RM" step="0.01" class="p-3 border rounded-xl" required>
-                        <select id="menuCategory" class="p-3 border rounded-xl bg-white">
+                <div class="p-6 bg-white border border-gray-200 rounded-2xl mb-8">
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-4 tracking-wider">Add New Item</h3>
+                    <form id="menuForm" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <input type="text" id="menuName" placeholder="Item Name" class="p-3 border border-gray-100 rounded-xl text-sm" required>
+                        <input type="number" id="menuPrice" placeholder="Price RM" step="0.01" class="p-3 border border-gray-100 rounded-xl text-sm" required>
+                        <select id="menuCategory" class="p-3 border border-gray-100 rounded-xl text-sm bg-gray-50">
                             <option value="Main Menu">Main Menu</option>
                             <option value="Add On">Add On</option>
                             <option value="Student Menu">Student Menu</option>
                         </select>
-                        <button type="submit" class="btn btn-primary">Add Menu</button>
+                        <button type="submit" class="btn btn-primary text-sm">Add to Menu</button>
                     </form>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     <div>
-                        <h3 class="font-black text-pink-600 mb-4 uppercase text-sm tracking-widest">Main Menu</h3>
+                        <h3 class="text-sm font-semibold text-pink-500 mb-4 px-2">Main Menu</h3>
                         <div id="list-main" class="space-y-3"></div>
                     </div>
                     <div>
-                        <h3 class="font-black text-blue-600 mb-4 uppercase text-sm tracking-widest">Add On</h3>
+                        <h3 class="text-sm font-semibold text-blue-500 mb-4 px-2">Add Ons</h3>
                         <div id="list-addon" class="space-y-3"></div>
                     </div>
                 </div>
-                <div class="mb-10">
-                    <h3 class="font-black text-orange-600 mb-4 uppercase text-sm tracking-widest">Student Menu</h3>
+                <div class="mb-8">
+                    <h3 class="text-sm font-semibold text-orange-500 mb-4 px-2">Student Specials</h3>
                     <div id="list-student" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
                 </div>
 
-                <div class="card p-6 border-none bg-gray-50 rounded-3xl">
-                    <h3 class="font-black text-gray-800 uppercase text-sm mb-4">Unit Sales Performance (Overall)</h3>
+                <div class="p-6 bg-gray-50 rounded-2xl">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase mb-4">Total Items Sold</h3>
                     <ul id="topSellingItemsList" class="space-y-2"></ul>
                 </div>
             </section>
 
             <section id="salesReportSection" class="hidden">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Financial Report</h2>
+                    <h2 class="text-xl font-semibold text-gray-800">Monthly Analysis</h2>
                     <div class="flex gap-2">
-                        <select id="reportMonth" class="p-2 border rounded-xl" onchange="generateSalesReport()"></select>
-                        <select id="reportYear" class="p-2 border rounded-xl" onchange="generateSalesReport()"></select>
+                        <select id="reportMonth" class="p-2 border border-gray-200 rounded-lg text-xs" onchange="generateSalesReport()"></select>
+                        <select id="reportYear" class="p-2 border border-gray-200 rounded-lg text-xs" onchange="generateSalesReport()"></select>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 text-white">
-                    <div class="bg-pink-600 p-6 rounded-3xl shadow-lg">
-                        <p class="uppercase text-[10px] font-bold opacity-80">Monthly Revenue</p>
-                        <h2 id="totalSalesDisplay" class="text-3xl font-black mt-1">RM 0.00</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
+                        <p class="text-[10px] font-semibold text-gray-400 uppercase">Revenue</p>
+                        <h2 id="totalSalesDisplay" class="text-2xl font-semibold text-pink-600 mt-1">RM 0.00</h2>
                     </div>
-                    <div class="bg-red-500 p-6 rounded-3xl shadow-lg">
-                        <p class="uppercase text-[10px] font-bold opacity-80">Groceries Expenses</p>
-                        <h2 id="totalGroceriesDisplay" class="text-3xl font-black mt-1">RM 0.00</h2>
+                    <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
+                        <p class="text-[10px] font-semibold text-gray-400 uppercase">Expenses</p>
+                        <h2 id="totalGroceriesDisplay" class="text-2xl font-semibold text-red-500 mt-1">RM 0.00</h2>
                     </div>
-                    <div class="bg-green-600 p-6 rounded-3xl shadow-lg">
-                        <p class="uppercase text-[10px] font-bold opacity-80">Net Profit</p>
-                        <h2 id="totalProfitDisplay" class="text-3xl font-black mt-1">RM 0.00</h2>
+                    <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
+                        <p class="text-[10px] font-semibold text-gray-400 uppercase">Profit</p>
+                        <h2 id="totalProfitDisplay" class="text-2xl font-semibold text-green-600 mt-1">RM 0.00</h2>
                     </div>
                 </div>
 
-                <div id="weeklyBreakdown" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10"></div>
+                <div id="weeklyBreakdown" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"></div>
 
-                <div class="p-6 bg-red-50 rounded-3xl border border-red-100">
-                    <h3 class="font-bold mb-4 text-red-600 uppercase text-xs tracking-widest">Add Grocery Purchase</h3>
-                    <form id="groceryForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <input type="date" id="groceryDate" class="p-3 border rounded-xl" required>
-                        <input type="text" id="groceryRemarks" placeholder="What did you buy?" class="p-3 border rounded-xl" required>
-                        <input type="number" id="groceryAmount" step="0.01" placeholder="Total RM" class="p-3 border rounded-xl" required>
-                        <button type="submit" class="bg-red-600 text-white rounded-xl font-bold py-3">Save Purchase</button>
+                <div class="p-6 bg-red-50/50 rounded-2xl border border-red-100">
+                    <h3 class="text-xs font-semibold text-red-400 uppercase mb-4">Log Grocery Cost</h3>
+                    <form id="groceryForm" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <input type="date" id="groceryDate" class="p-3 border border-white rounded-xl text-sm" required>
+                        <input type="text" id="groceryRemarks" placeholder="Description" class="p-3 border border-white rounded-xl text-sm" required>
+                        <input type="number" id="groceryAmount" step="0.01" placeholder="RM" class="p-3 border border-white rounded-xl text-sm" required>
+                        <button type="submit" class="bg-red-500 text-white rounded-xl text-sm font-medium hover:bg-red-600 transition">Save Cost</button>
                     </form>
                 </div>
             </section>
         </div>
     </div>
 
-    <div id="modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-8 rounded-3xl max-w-sm w-full shadow-2xl">
-            <h3 class="text-xl font-bold mb-4 text-gray-800">Edit Menu Item</h3>
+    <div id="modal" class="fixed inset-0 bg-slate-900/40 hidden flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-3xl max-w-sm w-full shadow-xl">
+            <h3 class="text-lg font-semibold mb-5 text-gray-800">Edit Menu Item</h3>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Item Name</label>
-                    <input type="text" id="editNameInput" class="w-full border p-3 rounded-xl">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Price (RM)</label>
-                    <input type="number" id="editPriceInput" class="w-full border p-3 rounded-xl" step="0.01">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Category</label>
-                    <select id="editCategoryInput" class="w-full border p-3 rounded-xl">
-                        <option value="Main Menu">Main Menu</option>
-                        <option value="Add On">Add On</option>
-                        <option value="Student Menu">Student Menu</option>
-                    </select>
-                </div>
+                <input type="text" id="editNameInput" class="w-full border border-gray-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-pink-100 outline-none">
+                <input type="number" id="editPriceInput" class="w-full border border-gray-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-pink-100 outline-none" step="0.01">
+                <select id="editCategoryInput" class="w-full border border-gray-200 p-3 rounded-xl text-sm bg-gray-50">
+                    <option value="Main Menu">Main Menu</option>
+                    <option value="Add On">Add On</option>
+                    <option value="Student Menu">Student Menu</option>
+                </select>
             </div>
             <div class="flex gap-3 mt-8">
-                <button id="modalConfirmBtn" class="btn btn-primary flex-1">Save Changes</button>
-                <button onclick="closeModal()" class="btn btn-secondary flex-1 text-gray-700 bg-gray-100">Cancel</button>
+                <button id="modalConfirmBtn" class="btn btn-primary flex-1 text-sm py-3">Save Changes</button>
+                <button onclick="closeModal()" class="btn btn-secondary flex-1 text-sm py-3">Cancel</button>
             </div>
         </div>
     </div>
