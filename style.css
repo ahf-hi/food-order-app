@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
 
+/* --- General Styles --- */
 body { 
     font-family: 'Inter', sans-serif; 
     background-color: #f3f4f6; 
@@ -7,7 +8,7 @@ body {
 }
 
 .container { 
-    max-width: 90%; 
+    max-width: 95%; 
     margin: 0 auto; 
     padding: 2rem 1rem; 
     animation: fadeIn 0.5s ease-in-out; 
@@ -18,14 +19,18 @@ body {
     to { opacity: 1; transform: translateY(0); } 
 }
 
+/* --- Layout Components --- */
 .card { 
     background-color: #ffffff; 
     border-radius: 1.5rem; 
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05); 
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1); 
     padding: 2rem; 
     margin-bottom: 2rem; 
 }
 
+.hidden { display: none; }
+
+/* --- Buttons --- */
 .btn { 
     padding: 10px 20px; 
     border: none; 
@@ -40,18 +45,80 @@ body {
 .btn-secondary { background-color: #EFC3CA; color: white; }
 .btn-active { background-color: #ec4899; color: white; }
 
-.btn:hover { transform: translateY(-1px); filter: brightness(90%); }
+.btn:hover { 
+    transform: translateY(-1px); 
+    filter: brightness(90%); 
+}
 
-.hidden { display: none; }
+/* --- Menu Management Specifics --- */
+/* This makes inactive items look greyed out */
+.grayscale-card {
+    filter: grayscale(100%);
+    opacity: 0.6;
+    background-color: #f9fafb !important;
+    border-style: dashed !important;
+}
 
-/* Table Styling */
-.table-container { overflow-x: auto; border-radius: 1rem; }
-.data-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-.data-table th, .data-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
-.data-table th { background: #f9fafb; font-weight: 600; color: #1f2937; }
-.data-table tbody tr:hover { background-color: #fff1f2; }
+/* Ensure buttons inside grayscale cards stay colorful so you can click them */
+.grayscale-card button {
+    filter: none !important;
+}
 
-/* Specific logic styles */
-.text-negative { color: #ef4444 !important; font-weight: 800; }
-.bg-profit { background-color: #059669; }
-.bg-grocery { background-color: #dc2626; }
+/* --- Table Styles --- */
+.table-container { 
+    overflow-x: auto; 
+    border-radius: 1rem; 
+    background: white;
+}
+
+.data-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: .9rem; 
+}
+
+.data-table th, .data-table td { 
+    padding: 1rem; 
+    text-align: left; 
+    border-bottom: 1px solid #e5e7eb; 
+}
+
+.data-table th { 
+    background: #f9fafb; 
+    font-weight: 600; 
+    color: #1f2937; 
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.data-table tbody tr:hover { 
+    background-color: #fff1f2; 
+}
+
+/* --- Remarks & Labels --- */
+.remark-text {
+    font-size: 10px;
+    color: #991b1b;
+    background: #fee2e2;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+/* Custom Scrollbar for Menu Selection */
+#menuItems::-webkit-scrollbar {
+    width: 6px;
+}
+#menuItems::-webkit-scrollbar-thumb {
+    background: #EFC3CA;
+    border-radius: 10px;
+}
+
+/* Category Headers in Manage Menu */
+h3.tracking-widest {
+    border-left: 4px solid currentColor;
+    padding-left: 10px;
+    margin-bottom: 1rem;
+}
