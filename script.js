@@ -33,6 +33,14 @@ async function fetchData() {
     renderOverallPerformance();
 }
 
+// --- HELPER: FORMAT ITEM NAME ---
+function formatItemName(item) {
+    let name = item.name;
+    if (item.category === 'Add On') name += ' (Add On)';
+    else if (item.category === 'Student Menu') name += ' (Student Menu)';
+    return name;
+}
+
 // --- NAVIGATION ---
 function showSection(id) {
     ['orderFormSection', 'ordersListSection', 'orderSummarySection', 'manageMenuSection', 'salesReportSection'].forEach(s => {
@@ -133,7 +141,7 @@ function renderOrdersTable() {
 
     tableBody.innerHTML = filtered.map(o => {
         const isExpense = o.customerName === 'Admin';
-        const itemsDisplay = o.items ? o.items.map(i => `<div class="text-[11px] font-bold text-gray-700">${i.quantity}x ${i.name}</div>`).join('') : '';
+        const itemsDisplay = o.items ? o.items.map(i => `<div class="text-[11px] font-bold text-gray-700">${i.quantity}x ${formatItemName(i)}</div>`).join('') : '';
 
         return `<tr class="border-b hover:bg-gray-50">
             <td class="p-4 text-[10px] text-gray-400 font-bold">${o.date}</td>
@@ -151,8 +159,9 @@ function renderOrdersTable() {
 function calculateTotalPrice() {
     let subtotal = 0;
     document.querySelectorAll('.menu-item-checkbox:checked').forEach(cb => {
-        const qty = cb.closest('div').querySelector('.qty-input').value;
-        subtotal += parseFloat(cb.dataset.price) * (parseInt(qty) || 1);
+        const qtyInput = cb.closest('div').querySelector('.qty-input');
+        const qty = parseInt(qtyInput.value) || 1;
+        subtotal += parseFloat(cb.dataset.price) * qty;
     });
     const del = parseFloat(document.getElementById('deliveryFee').value || 0);
     document.getElementById('totalPriceDisplay').innerText = `RM ${(subtotal + del).toFixed(2)}`;
@@ -163,12 +172,24 @@ document.getElementById('orderForm').onsubmit = async (e) => {
     const selected = [];
     document.querySelectorAll('.menu-item-checkbox:checked').forEach(cb => {
         const qty = cb.closest('div').querySelector('.qty-input').value;
-        selected.push({ name: cb.dataset.name, price: parseFloat(cb.dataset.price), quantity: parseInt(qty) || 1, category: cb.dataset.category });
+        selected.push({ 
+            name: cb.dataset.name, 
+            price: parseFloat(cb.dataset.price), 
+            quantity: parseInt(qty) || 1, 
+            category: cb.dataset.category 
+        });
     });
     if(!selected.length) return alert("Select an item");
     const del = parseFloat(document.getElementById('deliveryFee').value || 0);
     const sub = selected.reduce((a, i) => a + (i.price * i.quantity), 0);
-    await supabase.from('orders').insert([{ customerName: document.getElementById('customerName').value, date: document.getElementById('orderDate').value, items: selected, deliveryFee: del, totalPrice: sub + del, user_id: userId }]);
+    await supabase.from('orders').insert([{ 
+        customerName: document.getElementById('customerName').value, 
+        date: document.getElementById('orderDate').value, 
+        items: selected, 
+        deliveryFee: del, 
+        totalPrice: sub + del, 
+        user_id: userId 
+    }]);
     e.target.reset();
     calculateTotalPrice();
 };
@@ -176,14 +197,27 @@ document.getElementById('orderForm').onsubmit = async (e) => {
 document.getElementById('groceryForm').onsubmit = async (e) => {
     e.preventDefault();
     const amount = parseFloat(document.getElementById('groceryAmount').value);
-    await supabase.from('orders').insert([{ customerName: 'Admin', date: document.getElementById('groceryDate').value, items: [{ name: 'Groceries', remarks: document.getElementById('groceryRemarks').value, price: -amount, quantity: 1, category: 'Main Menu' }], deliveryFee: 0, totalPrice: -amount, user_id: userId }]);
+    await supabase.from('orders').insert([{ 
+        customerName: 'Admin', 
+        date: document.getElementById('groceryDate').value, 
+        items: [{ name: 'Groceries', remarks: document.getElementById('groceryRemarks').value, price: -amount, quantity: 1, category: 'Main Menu' }], 
+        deliveryFee: 0, 
+        totalPrice: -amount, 
+        user_id: userId 
+    }]);
     e.target.reset();
     fetchData();
 };
 
 document.getElementById('menuForm').onsubmit = async (e) => {
     e.preventDefault();
-    await supabase.from('menus').insert([{ name: document.getElementById('menuName').value, price: parseFloat(document.getElementById('menuPrice').value), category: document.getElementById('menuCategory').value, status: 'Active', user_id: userId }]);
+    await supabase.from('menus').insert([{ 
+        name: document.getElementById('menuName').value, 
+        price: parseFloat(document.getElementById('menuPrice').value), 
+        category: document.getElementById('menuCategory').value, 
+        status: 'Active', 
+        user_id: userId 
+    }]);
     e.target.reset();
     fetchData();
 };
@@ -200,7 +234,11 @@ window.openEditMenu = (id, name, price, cat) => {
     document.getElementById('editPriceInput').value = price;
     document.getElementById('editCategoryInput').value = cat;
     document.getElementById('modalConfirmBtn').onclick = async () => {
-        await supabase.from('menus').update({ name: document.getElementById('editNameInput').value, price: parseFloat(document.getElementById('editPriceInput').value), category: document.getElementById('editCategoryInput').value }).eq('id', id);
+        await supabase.from('menus').update({ 
+            name: document.getElementById('editNameInput').value, 
+            price: parseFloat(document.getElementById('editPriceInput').value), 
+            category: document.getElementById('editCategoryInput').value 
+        }).eq('id', id);
         closeModal();
         fetchData();
     };
@@ -217,10 +255,12 @@ function setupSalesReportFilters() {
     document.getElementById('reportYear').innerHTML = [yr, yr-1].map(y => `<option value="${y}">${y}</option>`).join('');
 }
 
+// --- FINANCIALS & WEEKLY REVENUE ---
 function generateSalesReport() {
     const m = parseInt(document.getElementById('reportMonth').value);
     const y = parseInt(document.getElementById('reportYear').value);
     let totalRev = 0, totalGroc = 0;
+
     orders.forEach(o => {
         const d = new Date(o.date);
         if (d.getMonth() === m && d.getFullYear() === y) {
@@ -228,19 +268,63 @@ function generateSalesReport() {
             else totalRev += Number(o.totalPrice);
         }
     });
+
     document.getElementById('totalSalesDisplay').innerText = `RM ${totalRev.toFixed(2)}`;
     document.getElementById('totalGroceriesDisplay').innerText = `RM ${totalGroc.toFixed(2)}`;
     document.getElementById('totalProfitDisplay').innerText = `RM ${(totalRev - totalGroc).toFixed(2)}`;
+
+    // Generate Weekly Revenue Breakdown
+    const weeks = getWeeksInMonth(y, m);
+    document.getElementById('weeklyBreakdown').innerHTML = weeks.map((week, idx) => {
+        let weeklySum = 0;
+        orders.forEach(o => {
+            const od = new Date(o.date);
+            if (o.customerName !== 'Admin' && od >= week.start && od <= week.end) {
+                weeklySum += Number(o.totalPrice);
+            }
+        });
+        return `
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 text-center shadow-sm">
+                <p class="text-[10px] font-bold text-pink-500 uppercase tracking-widest mb-1">Week ${idx + 1}</p>
+                <p class="text-xl font-black text-gray-800">RM ${weeklySum.toFixed(2)}</p>
+                <p class="text-[9px] text-gray-400 mt-1">${week.start.getDate()} - ${week.end.getDate()} ${week.start.toLocaleString('default', { month: 'short' })}</p>
+            </div>`;
+    }).join('');
+}
+
+function getWeeksInMonth(year, month) {
+    const weeks = [];
+    let d = new Date(year, month, 1);
+    while (d.getMonth() === month) {
+        let start = new Date(d);
+        let end = new Date(d);
+        end.setDate(end.getDate() + (6 - end.getDay())); // Get Sunday
+        if (end.getMonth() !== month) end = new Date(year, month + 1, 0); // Cap at end of month
+        weeks.push({ start: new Date(start), end: new Date(end) });
+        d.setDate(end.getDate() + 1);
+    }
+    return weeks;
 }
 
 function renderOverallPerformance() {
     const counts = {};
-    orders.forEach(o => { if(o.customerName !== 'Admin' && o.items) o.items.forEach(i => counts[i.name] = (counts[i.name] || 0) + i.quantity); });
+    orders.forEach(o => { 
+        if(o.customerName !== 'Admin' && o.items) {
+            o.items.forEach(i => {
+                const label = formatItemName(i);
+                counts[label] = (counts[label] || 0) + i.quantity;
+            });
+        } 
+    });
     const list = document.getElementById('topSellingItemsList');
-    if(list) list.innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1]).map(([n, q]) => `<li class="flex justify-between p-3 bg-white rounded-xl shadow-sm border-l-4 border-pink-400"><span class="font-bold text-gray-700">${n}</span><span class="text-pink-600 font-black">${q} Sold</span></li>`).join('');
+    if(list) list.innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1]).map(([n, q]) => `
+        <li class="flex justify-between p-3 bg-white rounded-xl shadow-sm border-l-4 border-pink-400">
+            <span class="font-bold text-gray-700">${n}</span>
+            <span class="text-pink-600 font-black">${q} Sold</span>
+        </li>`).join('');
 }
 
-// --- SUMMARY LOGIC (FIXED) ---
+// --- SUMMARY LOGIC ---
 window.renderOrderSummary = (type) => {
     window.currentSummaryType = type;
     const date = document.getElementById('summaryDate').value;
@@ -252,22 +336,29 @@ window.renderOrderSummary = (type) => {
     const btnItem = document.getElementById('btnSumItem');
 
     if (type === 'customer') {
-        btnCust.classList.replace('btn-secondary', 'btn-active');
-        btnItem.classList.replace('btn-active', 'btn-secondary');
+        btnCust.className = 'btn btn-active text-xs px-4';
+        btnItem.className = 'btn btn-secondary text-xs px-4';
         
         const grouped = filtered.reduce((acc, o) => { if (!acc[o.customerName]) acc[o.customerName] = []; acc[o.customerName].push(o); return acc; }, {});
         container.innerHTML = Object.entries(grouped).map(([name, custOrders]) => `
             <div class="p-6 bg-white rounded-3xl border shadow-sm border-l-8 border-pink-500">
                 <h3 class="font-black text-gray-800 mb-3 uppercase tracking-tighter">${name}</h3>
-                ${custOrders.map(o => o.items.map(i => `<div class="text-xs font-bold text-gray-600 mb-1">• ${i.quantity}x ${i.name}</div>`).join('')).join('')}
+                ${custOrders.map(o => o.items.map(i => `<div class="text-xs font-bold text-gray-600 mb-1">• ${i.quantity}x ${formatItemName(i)}</div>`).join('')).join('')}
                 <div class="text-right mt-2 pt-2 border-t font-black text-pink-600">RM ${custOrders.reduce((a, b) => a + b.totalPrice, 0).toFixed(2)}</div>
-            </div>`).join('') || '<p class="col-span-2 text-center text-gray-400 py-10">No orders.</p>';
+            </div>`).join('') || '<p class="col-span-2 text-center text-gray-400 py-10">No orders for this date.</p>';
     } else {
-        btnItem.classList.replace('btn-secondary', 'btn-active');
-        btnCust.classList.replace('btn-active', 'btn-secondary');
+        btnItem.className = 'btn btn-active text-xs px-4';
+        btnCust.className = 'btn btn-secondary text-xs px-4';
 
         const counts = {};
-        filtered.forEach(o => o.items.forEach(i => counts[i.name] = (counts[i.name] || 0) + i.quantity));
-        container.innerHTML = Object.entries(counts).map(([n, q]) => `<div class="bg-white p-5 rounded-2xl border flex justify-between shadow-sm"><b class="text-gray-700">${n}</b><span class="text-pink-600 font-black text-xl">${q}</span></div>`).join('') || '<p class="col-span-2 text-center text-gray-400 py-10">No items.</p>';
+        filtered.forEach(o => o.items.forEach(i => {
+            const label = formatItemName(i);
+            counts[label] = (counts[label] || 0) + i.quantity;
+        }));
+        container.innerHTML = Object.entries(counts).map(([n, q]) => `
+            <div class="bg-white p-5 rounded-2xl border flex justify-between shadow-sm">
+                <b class="text-gray-700">${n}</b>
+                <span class="text-pink-600 font-black text-xl">${q}</span>
+            </div>`).join('') || '<p class="col-span-2 text-center text-gray-400 py-10">No items sold today.</p>';
     }
 };
