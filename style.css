@@ -1,124 +1,121 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-/* --- General Styles --- */
+/* --- 1. Casual Global Reset --- */
 body { 
     font-family: 'Inter', sans-serif; 
-    background-color: #f3f4f6; 
+    background-color: #f8fafc; /* Slightly softer gray */
+    color: #334155; /* Slate gray instead of harsh black */
+    line-height: 1.5;
     transition: all 0.3s ease; 
 }
 
+/* Cleaner, lighter headers */
+h1, h2, h3 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #1e293b;
+}
+
+/* --- 2. Layout & Soft Animations --- */
 .container { 
-    max-width: 95%; 
+    max-width: 90%; 
     margin: 0 auto; 
     padding: 2rem 1rem; 
-    animation: fadeIn 0.5s ease-in-out; 
+    animation: fadeIn 0.4s ease-out; 
 }
 
 @keyframes fadeIn { 
-    from { opacity: 0; transform: translateY(-20px); } 
-    to { opacity: 1; transform: translateY(0); } 
+    from { opacity: 0; } 
+    to { opacity: 1; } 
 }
 
-/* --- Layout Components --- */
 .card { 
     background-color: #ffffff; 
-    border-radius: 1.5rem; 
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1); 
+    border-radius: 1.25rem; 
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
     padding: 2rem; 
     margin-bottom: 2rem; 
+    border: 1px solid #f1f5f9;
 }
 
-.hidden { display: none; }
-
-/* --- Buttons --- */
+/* --- 3. Casual Buttons --- */
 .btn { 
-    padding: 10px 20px; 
-    border: none; 
-    border-radius: 12px; 
+    padding: 10px 22px; 
+    border-radius: 10px; 
     font-size: 14px; 
-    font-weight: bold; 
+    font-weight: 500; 
     cursor: pointer; 
-    transition: all 0.2s ease; 
+    transition: all 0.2s; 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-primary { background-color: #ec4899; color: white; }
-.btn-secondary { background-color: #EFC3CA; color: white; }
-.btn-active { background-color: #ec4899; color: white; }
+.btn-secondary { background-color: #f1f5f9; color: #64748b; }
+.btn-active { background-color: #fdf2f8; color: #ec4899; border: 1px solid #fbcfe8; }
 
-.btn:hover { 
-    transform: translateY(-1px); 
-    filter: brightness(90%); 
+.btn:hover { filter: brightness(95%); }
+
+/* --- 4. Menu Selection List (Order Form) --- */
+.menu-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: #fff;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    border: 1px solid #f1f5f9;
 }
 
-/* --- Menu Management Specifics --- */
-/* This makes inactive items look greyed out */
+/* Inactive State: Just slightly faded, not ugly */
 .grayscale-card {
-    filter: grayscale(100%);
-    opacity: 0.6;
-    background-color: #f9fafb !important;
-    border-style: dashed !important;
+    opacity: 0.5;
+    background-color: #f8fafc !important;
+    border: 1px dashed #cbd5e1 !important;
 }
 
-/* Ensure buttons inside grayscale cards stay colorful so you can click them */
-.grayscale-card button {
-    filter: none !important;
-}
-
-/* --- Table Styles --- */
+/* --- 5. Simplified Tables --- */
 .table-container { 
     overflow-x: auto; 
-    border-radius: 1rem; 
-    background: white;
+    border-radius: 12px; 
 }
 
 .data-table { 
     width: 100%; 
     border-collapse: collapse; 
-    font-size: .9rem; 
-}
-
-.data-table th, .data-table td { 
-    padding: 1rem; 
-    text-align: left; 
-    border-bottom: 1px solid #e5e7eb; 
+    font-size: 14px; 
 }
 
 .data-table th { 
-    background: #f9fafb; 
-    font-weight: 600; 
-    color: #1f2937; 
+    text-align: left;
+    padding: 12px 16px;
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 500;
+    font-size: 12px;
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
 }
 
-.data-table tbody tr:hover { 
-    background-color: #fff1f2; 
+.data-table td { 
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #475569;
 }
 
-/* --- Remarks & Labels --- */
-.remark-text {
-    font-size: 10px;
-    color: #991b1b;
-    background: #fee2e2;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 4px;
-    font-weight: bold;
-}
-
-/* Custom Scrollbar for Menu Selection */
-#menuItems::-webkit-scrollbar {
-    width: 6px;
-}
-#menuItems::-webkit-scrollbar-thumb {
-    background: #EFC3CA;
+/* --- 6. Form Inputs --- */
+input, select {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
     border-radius: 10px;
+    font-size: 14px;
+    color: #1e293b;
 }
 
-/* Category Headers in Manage Menu */
-h3.tracking-widest {
-    border-left: 4px solid currentColor;
-    padding-left: 10px;
-    margin-bottom: 1rem;
+input:focus {
+    outline: none;
+    border-color: #fbcfe8;
+    background-color: #fff;
 }
