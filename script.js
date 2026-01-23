@@ -313,7 +313,7 @@ function generateSalesReport() {
     // --- RENDER MENU PERFORMANCE TABLE (AT THE BOTTOM) ---
     const perfBody = document.getElementById('menuPerformanceBody');
     if (perfBody) {
-        const sorted = Object.entries(menuStats).sort((a, b) => b[1].revenue - a[1].revenue);
+        const sorted = Object.entries(menuStats).sort((a, b) => b[1].qty - a[1].qty);
         perfBody.innerHTML = sorted.map(([name, data], idx) => `
             <tr class="border-b hover:bg-gray-50 transition">
                 <td class="p-4 text-xs font-bold text-gray-300">#${idx + 1}</td>
