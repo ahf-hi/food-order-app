@@ -9,7 +9,19 @@ let orders = [];
 let menuItems = [];
 window.currentSummaryType = 'customer';
 
-// --- INITIALIZATION ---
+// --- NOTIFICATION HANDLER ---
+function showNotification(message) {
+    const container = document.getElementById('notification-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const today = new Date().toISOString().split('T')[0];
     ['orderDate', 'summaryDate', 'groceryDate', 'orderViewDate'].forEach(id => {
@@ -17,8 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     setupSalesReportFilters();
     await fetchData();
-    
-    // Real-time listener
     supabase.channel('db-changes').on('postgres_changes', { event: '*', schema: 'public' }, fetchData).subscribe();
     showSection('orderFormSection');
 });
@@ -30,18 +40,16 @@ async function fetchData() {
     menuItems = m || [];
     renderAll();
     generateSalesReport();
-    renderOverallPerformance();
 }
 
-// --- HELPER: FORMAT ITEM NAME ---
 function formatItemName(item) {
+    if (item.name === 'Groceries') return item.remarks; 
     let name = item.name;
     if (item.category === 'Add On') name += ' (Add On)';
     else if (item.category === 'Student Menu') name += ' (Student Menu)';
     return name;
 }
 
-// --- NAVIGATION ---
 function showSection(id) {
     ['orderFormSection', 'ordersListSection', 'orderSummarySection', 'manageMenuSection', 'salesReportSection'].forEach(s => {
         document.getElementById(s).classList.add('hidden');
@@ -69,12 +77,10 @@ function updateNavButtons(activeId) {
     }
 }
 
-// --- RENDER LOGIC ---
 function renderAll() {
     const menuItemsEl = document.getElementById('menuItems');
     if (menuItemsEl) {
         const activeMenus = menuItems.filter(m => m.status === 'Active').sort((a,b) => a.name.localeCompare(b.name));
-        
         const renderGroup = (cat) => activeMenus.filter(m => m.category === cat).map(m => `
             <div class="flex items-center justify-between p-3 bg-white border rounded-xl shadow-sm">
                 <label class="flex items-center gap-3 cursor-pointer">
@@ -92,30 +98,19 @@ function renderAll() {
             <div class="mt-6">
                 <h4 class="font-bold text-xs text-orange-400 uppercase mb-2">Student Menu</h4>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-2">${renderGroup('Student Menu')}</div>
-            </div>
-        `;
+            </div>`;
     }
 
-    const sortedMenu = [...menuItems].sort((a,b) => a.name.localeCompare(b.name));
     const categories = {'Main Menu': 'list-main', 'Add On': 'list-addon', 'Student Menu': 'list-student'};
-    
-    Object.values(categories).forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.innerHTML = '';
-    });
+    Object.values(categories).forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = ''; });
 
-    sortedMenu.forEach(item => {
+    menuItems.sort((a,b) => a.name.localeCompare(b.name)).forEach(item => {
         const isInactive = item.status === 'Inactive';
         const html = `
             <div class="p-4 rounded-2xl border flex items-center justify-between ${isInactive ? 'grayscale-card' : 'bg-white border-pink-100 shadow-sm'}">
-                <div>
-                    <p class="font-bold">${item.name}</p>
-                    <p class="text-xs font-medium text-pink-500">RM ${Number(item.price).toFixed(2)}</p>
-                </div>
+                <div><p class="font-bold">${item.name}</p><p class="text-xs font-medium text-pink-500">RM ${Number(item.price).toFixed(2)}</p></div>
                 <div class="flex items-center gap-2">
-                    <button onclick="toggleStatus('${item.id}', '${item.status}')" class="px-3 py-1 rounded-lg text-[10px] font-black uppercase ${isInactive ? 'bg-gray-300' : 'bg-green-500 text-white'}">
-                        ${item.status}
-                    </button>
+                    <button onclick="toggleStatus('${item.id}', '${item.status}')" class="px-3 py-1 rounded-lg text-[10px] font-black uppercase ${isInactive ? 'bg-gray-300' : 'bg-green-500 text-white'}">${item.status}</button>
                     <button onclick="openEditMenu('${item.id}', '${item.name}', ${item.price}, '${item.category}')" class="text-blue-500 text-[10px] font-bold uppercase p-1">Edit</button>
                     <button onclick="deleteMenuItem('${item.id}')" class="text-red-300 hover:text-red-500 text-[10px] font-bold uppercase p-1">Del</button>
                 </div>
@@ -123,35 +118,31 @@ function renderAll() {
         const listEl = document.getElementById(categories[item.category]);
         if(listEl) listEl.innerHTML += html;
     });
-
     renderOrdersTable();
 }
 
 function renderOrdersTable() {
     const tableBody = document.getElementById('ordersTableBody');
     if (!tableBody) return;
-
     const searchQuery = document.getElementById('orderSearch')?.value.toLowerCase() || '';
     const filterDate = document.getElementById('orderViewDate')?.value || '';
     
     const filtered = orders.filter(o => {
-        const matchesSearch = o.customerName.toLowerCase().includes(searchQuery);
+        const itemsText = o.items ? o.items.map(i => formatItemName(i)).join(' ').toLowerCase() : '';
+        const matchesSearch = o.customerName.toLowerCase().includes(searchQuery) || itemsText.includes(searchQuery);
         return searchQuery.length > 0 ? matchesSearch : o.date === filterDate;
     });
 
     tableBody.innerHTML = filtered.map(o => {
-        const isExpense = o.customerName === 'Admin';
+        const isExpense = o.customerName === 'Groceries';
         const itemsDisplay = o.items ? o.items.map(i => `<div class="text-[11px] font-bold text-gray-700">${i.quantity}x ${formatItemName(i)}</div>`).join('') : '';
-
         return `<tr class="border-b hover:bg-gray-50">
             <td class="p-4 text-[10px] text-gray-400 font-bold">${o.date}</td>
             <td class="p-4 font-bold text-gray-800">${o.customerName}</td>
             <td class="p-4">${itemsDisplay}</td>
             <td class="p-4 font-bold text-gray-400">RM ${Number(o.deliveryFee || 0).toFixed(2)}</td>
             <td class="p-4 font-black ${isExpense ? 'text-red-500' : 'text-pink-600'}">RM ${Math.abs(o.totalPrice).toFixed(2)}</td>
-            <td class="p-4 text-center">
-                <button onclick="deleteOrder('${o.id}')" class="text-gray-300 hover:text-red-500 font-bold text-[10px] uppercase">Delete</button>
-            </td>
+            <td class="p-4 text-center"><button onclick="deleteOrder('${o.id}')" class="text-gray-300 hover:text-red-500 font-bold text-[10px] uppercase">Delete</button></td>
         </tr>`;
     }).join('') || '<tr><td colspan="6" class="p-10 text-center text-gray-400">No records found.</td></tr>';
 }
@@ -159,8 +150,7 @@ function renderOrdersTable() {
 function calculateTotalPrice() {
     let subtotal = 0;
     document.querySelectorAll('.menu-item-checkbox:checked').forEach(cb => {
-        const qtyInput = cb.closest('div').querySelector('.qty-input');
-        const qty = parseInt(qtyInput.value) || 1;
+        const qty = parseInt(cb.closest('div').querySelector('.qty-input').value) || 1;
         subtotal += parseFloat(cb.dataset.price) * qty;
     });
     const del = parseFloat(document.getElementById('deliveryFee').value || 0);
@@ -172,52 +162,38 @@ document.getElementById('orderForm').onsubmit = async (e) => {
     const selected = [];
     document.querySelectorAll('.menu-item-checkbox:checked').forEach(cb => {
         const qty = cb.closest('div').querySelector('.qty-input').value;
-        selected.push({ 
-            name: cb.dataset.name, 
-            price: parseFloat(cb.dataset.price), 
-            quantity: parseInt(qty) || 1, 
-            category: cb.dataset.category 
-        });
+        selected.push({ name: cb.dataset.name, price: parseFloat(cb.dataset.price), quantity: parseInt(qty) || 1, category: cb.dataset.category });
     });
     if(!selected.length) return alert("Select an item");
     const del = parseFloat(document.getElementById('deliveryFee').value || 0);
     const sub = selected.reduce((a, i) => a + (i.price * i.quantity), 0);
-    await supabase.from('orders').insert([{ 
-        customerName: document.getElementById('customerName').value, 
-        date: document.getElementById('orderDate').value, 
-        items: selected, 
-        deliveryFee: del, 
-        totalPrice: sub + del, 
-        user_id: userId 
-    }]);
+    await supabase.from('orders').insert([{ customerName: document.getElementById('customerName').value, date: document.getElementById('orderDate').value, items: selected, deliveryFee: del, totalPrice: sub + del, user_id: userId }]);
+    showNotification("Order added successfully!");
     e.target.reset();
     calculateTotalPrice();
+    fetchData();
 };
 
 document.getElementById('groceryForm').onsubmit = async (e) => {
     e.preventDefault();
     const amount = parseFloat(document.getElementById('groceryAmount').value);
     await supabase.from('orders').insert([{ 
-        customerName: 'Admin', 
+        customerName: 'Groceries', 
         date: document.getElementById('groceryDate').value, 
         items: [{ name: 'Groceries', remarks: document.getElementById('groceryRemarks').value, price: -amount, quantity: 1, category: 'Main Menu' }], 
         deliveryFee: 0, 
         totalPrice: -amount, 
         user_id: userId 
     }]);
+    showNotification("Expense saved!");
     e.target.reset();
     fetchData();
 };
 
 document.getElementById('menuForm').onsubmit = async (e) => {
     e.preventDefault();
-    await supabase.from('menus').insert([{ 
-        name: document.getElementById('menuName').value, 
-        price: parseFloat(document.getElementById('menuPrice').value), 
-        category: document.getElementById('menuCategory').value, 
-        status: 'Active', 
-        user_id: userId 
-    }]);
+    await supabase.from('menus').insert([{ name: document.getElementById('menuName').value, price: parseFloat(document.getElementById('menuPrice').value), category: document.getElementById('menuCategory').value, status: 'Active', user_id: userId }]);
+    showNotification("Menu item added!");
     e.target.reset();
     fetchData();
 };
@@ -225,6 +201,7 @@ document.getElementById('menuForm').onsubmit = async (e) => {
 async function toggleStatus(id, current) {
     const nextStatus = (current === 'Active') ? 'Inactive' : 'Active';
     await supabase.from('menus').update({ status: nextStatus }).eq('id', id);
+    showNotification("Status updated!");
     fetchData();
 }
 
@@ -234,104 +211,59 @@ window.openEditMenu = (id, name, price, cat) => {
     document.getElementById('editPriceInput').value = price;
     document.getElementById('editCategoryInput').value = cat;
     document.getElementById('modalConfirmBtn').onclick = async () => {
-        await supabase.from('menus').update({ 
-            name: document.getElementById('editNameInput').value, 
-            price: parseFloat(document.getElementById('editPriceInput').value), 
-            category: document.getElementById('editCategoryInput').value 
-        }).eq('id', id);
+        await supabase.from('menus').update({ name: document.getElementById('editNameInput').value, price: parseFloat(document.getElementById('editPriceInput').value), category: document.getElementById('editCategoryInput').value }).eq('id', id);
         closeModal();
+        showNotification("Menu updated!");
         fetchData();
     };
 };
 
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-async function deleteMenuItem(id) { if(confirm("Delete?")) await supabase.from('menus').delete().eq('id', id); }
-async function deleteOrder(id) { if(confirm("Delete?")) await supabase.from('orders').delete().eq('id', id); }
+
+async function deleteMenuItem(id) { 
+    if(confirm("Delete menu item?")) {
+        await supabase.from('menus').delete().eq('id', id); 
+        showNotification("Item deleted!");
+        fetchData();
+    }
+}
+
+async function deleteOrder(id) { 
+    if(confirm("Delete this record?")) {
+        await supabase.from('orders').delete().eq('id', id); 
+        showNotification("Record deleted!");
+        fetchData();
+    }
+}
 
 function setupSalesReportFilters() {
     const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    document.getElementById('reportMonth').innerHTML = months.map((m, i) => `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`).join('');
+    if(document.getElementById('reportMonth')) document.getElementById('reportMonth').innerHTML = months.map((m, i) => `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`).join('');
     const yr = new Date().getFullYear();
-    document.getElementById('reportYear').innerHTML = [yr, yr-1].map(y => `<option value="${y}">${y}</option>`).join('');
+    if(document.getElementById('reportYear')) document.getElementById('reportYear').innerHTML = [yr, yr-1].map(y => `<option value="${y}">${y}</option>`).join('');
 }
 
-// --- FINANCIALS & WEEKLY REVENUE ---
 function generateSalesReport() {
     const m = parseInt(document.getElementById('reportMonth').value);
     const y = parseInt(document.getElementById('reportYear').value);
     let totalRev = 0, totalGroc = 0;
-
     orders.forEach(o => {
         const d = new Date(o.date);
         if (d.getMonth() === m && d.getFullYear() === y) {
-            if(o.customerName === 'Admin') totalGroc += Math.abs(o.totalPrice);
+            if(o.customerName === 'Groceries') totalGroc += Math.abs(o.totalPrice);
             else totalRev += Number(o.totalPrice);
         }
     });
-
     document.getElementById('totalSalesDisplay').innerText = `RM ${totalRev.toFixed(2)}`;
     document.getElementById('totalGroceriesDisplay').innerText = `RM ${totalGroc.toFixed(2)}`;
     document.getElementById('totalProfitDisplay').innerText = `RM ${(totalRev - totalGroc).toFixed(2)}`;
-
-    // Generate Weekly Revenue Breakdown
-    const weeks = getWeeksInMonth(y, m);
-    document.getElementById('weeklyBreakdown').innerHTML = weeks.map((week, idx) => {
-        let weeklySum = 0;
-        orders.forEach(o => {
-            const od = new Date(o.date);
-            if (o.customerName !== 'Admin' && od >= week.start && od <= week.end) {
-                weeklySum += Number(o.totalPrice);
-            }
-        });
-        return `
-            <div class="bg-white p-6 rounded-2xl border border-gray-100 text-center shadow-sm">
-                <p class="text-[10px] font-bold text-pink-500 uppercase tracking-widest mb-1">Week ${idx + 1}</p>
-                <p class="text-xl font-black text-gray-800">RM ${weeklySum.toFixed(2)}</p>
-                <p class="text-[9px] text-gray-400 mt-1">${week.start.getDate()} - ${week.end.getDate()} ${week.start.toLocaleString('default', { month: 'short' })}</p>
-            </div>`;
-    }).join('');
 }
 
-function getWeeksInMonth(year, month) {
-    const weeks = [];
-    let d = new Date(year, month, 1);
-    while (d.getMonth() === month) {
-        let start = new Date(d);
-        let end = new Date(d);
-        end.setDate(end.getDate() + (6 - end.getDay())); // Get Sunday
-        if (end.getMonth() !== month) end = new Date(year, month + 1, 0); // Cap at end of month
-        weeks.push({ start: new Date(start), end: new Date(end) });
-        d.setDate(end.getDate() + 1);
-    }
-    return weeks;
-}
-
-function renderOverallPerformance() {
-    const counts = {};
-    orders.forEach(o => { 
-        if(o.customerName !== 'Admin' && o.items) {
-            o.items.forEach(i => {
-                const label = formatItemName(i);
-                counts[label] = (counts[label] || 0) + i.quantity;
-            });
-        } 
-    });
-    const list = document.getElementById('topSellingItemsList');
-    if(list) list.innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1]).map(([n, q]) => `
-        <li class="flex justify-between p-3 bg-white rounded-xl shadow-sm border-l-4 border-pink-400">
-            <span class="font-bold text-gray-700">${n}</span>
-            <span class="text-pink-600 font-black">${q} Sold</span>
-        </li>`).join('');
-}
-
-// --- SUMMARY LOGIC ---
 window.renderOrderSummary = (type) => {
     window.currentSummaryType = type;
     const date = document.getElementById('summaryDate').value;
-    const filtered = orders.filter(o => o.date === date && o.customerName !== 'Admin');
+    const filtered = orders.filter(o => o.date === date && o.customerName !== 'Groceries');
     const container = document.getElementById('summaryDisplay');
-    
-    // UI: Toggle active button state
     const btnCust = document.getElementById('btnSumCust');
     const btnItem = document.getElementById('btnSumItem');
 
@@ -339,26 +271,62 @@ window.renderOrderSummary = (type) => {
         btnCust.className = 'btn btn-active text-xs px-4';
         btnItem.className = 'btn btn-secondary text-xs px-4';
         
-        const grouped = filtered.reduce((acc, o) => { if (!acc[o.customerName]) acc[o.customerName] = []; acc[o.customerName].push(o); return acc; }, {});
-        container.innerHTML = Object.entries(grouped).map(([name, custOrders]) => `
+        // Group orders by customer
+        const grouped = filtered.reduce((acc, o) => { 
+            if (!acc[o.customerName]) acc[o.customerName] = []; 
+            acc[o.customerName].push(o); 
+            return acc; 
+        }, {});
+
+        container.innerHTML = Object.entries(grouped).map(([name, custOrders]) => {
+            const deliveryTotal = custOrders.reduce((sum, o) => sum + (o.deliveryFee || 0), 0);
+            const grandTotal = custOrders.reduce((sum, o) => sum + o.totalPrice, 0);
+            
+            // Map individual items with their calculated totals
+            const itemsHtml = custOrders.map(o => 
+                o.items.map(i => {
+                    const itemTotal = (i.quantity * i.price).toFixed(2);
+                    return `<div class="text-xs font-bold text-gray-600 mb-1 flex justify-between">
+                        <span>• ${i.quantity}x ${formatItemName(i)}</span>
+                        <span class="text-gray-400">RM ${itemTotal}</span>
+                    </div>`;
+                }).join('')
+            ).join('');
+
+            return `
             <div class="p-6 bg-white rounded-3xl border shadow-sm border-l-8 border-pink-500">
                 <h3 class="font-black text-gray-800 mb-3 uppercase tracking-tighter">${name}</h3>
-                ${custOrders.map(o => o.items.map(i => `<div class="text-xs font-bold text-gray-600 mb-1">• ${i.quantity}x ${formatItemName(i)}</div>`).join('')).join('')}
-                <div class="text-right mt-2 pt-2 border-t font-black text-pink-600">RM ${custOrders.reduce((a, b) => a + b.totalPrice, 0).toFixed(2)}</div>
-            </div>`).join('') || '<p class="col-span-2 text-center text-gray-400 py-10">No orders for this date.</p>';
+                <div class="space-y-1">${itemsHtml}</div>
+                <div class="mt-3 pt-2 border-t flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-gray-400 italic">Delivery Fee: RM ${deliveryTotal.toFixed(2)}</span>
+                    <span class="font-black text-pink-600 text-lg">RM ${grandTotal.toFixed(2)}</span>
+                </div>
+            </div>`;
+        }).join('') || '<p class="col-span-2 text-center text-gray-400 py-10">No orders for this date.</p>';
     } else {
         btnItem.className = 'btn btn-active text-xs px-4';
         btnCust.className = 'btn btn-secondary text-xs px-4';
-
         const counts = {};
-        filtered.forEach(o => o.items.forEach(i => {
-            const label = formatItemName(i);
-            counts[label] = (counts[label] || 0) + i.quantity;
-        }));
-        container.innerHTML = Object.entries(counts).map(([n, q]) => `
+        let totalDelivs = 0;
+        filtered.forEach(o => {
+            if(o.deliveryFee > 0) totalDelivs++;
+            o.items.forEach(i => {
+                const label = formatItemName(i);
+                counts[label] = (counts[label] || 0) + i.quantity;
+            });
+        });
+        let html = Object.entries(counts).map(([n, q]) => `
             <div class="bg-white p-5 rounded-2xl border flex justify-between shadow-sm">
                 <b class="text-gray-700">${n}</b>
                 <span class="text-pink-600 font-black text-xl">${q}</span>
-            </div>`).join('') || '<p class="col-span-2 text-center text-gray-400 py-10">No items sold today.</p>';
+            </div>`).join('');
+        if (totalDelivs > 0) {
+            html += `
+            <div class="bg-gray-100 p-5 rounded-2xl border flex justify-between shadow-sm border-dashed">
+                <b class="text-gray-500 italic">Total Deliveries Today</b>
+                <span class="text-gray-700 font-black text-xl">${totalDelivs}</span>
+            </div>`;
+        }
+        container.innerHTML = html || '<p class="col-span-2 text-center text-gray-400 py-10">No items sold today.</p>';
     }
 };
