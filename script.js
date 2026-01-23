@@ -246,17 +246,47 @@ function setupSalesReportFilters() {
 function generateSalesReport() {
     const m = parseInt(document.getElementById('reportMonth').value);
     const y = parseInt(document.getElementById('reportYear').value);
+    
     let totalRev = 0, totalGroc = 0;
+    const weeklyData = { 1: {r:0, e:0}, 2: {r:0, e:0}, 3: {r:0, e:0}, 4: {r:0, e:0}, 5: {r:0, e:0} };
+
     orders.forEach(o => {
         const d = new Date(o.date);
         if (d.getMonth() === m && d.getFullYear() === y) {
-            if(o.customerName === 'Groceries') totalGroc += Math.abs(o.totalPrice);
-            else totalRev += Number(o.totalPrice);
+            const day = d.getDate();
+            const week = Math.min(Math.ceil(day / 7), 5);
+            const amt = Number(o.totalPrice);
+
+            if(o.customerName === 'Groceries') {
+                totalGroc += Math.abs(amt);
+                weeklyData[week].e += Math.abs(amt);
+            } else {
+                totalRev += amt;
+                weeklyData[week].r += amt;
+            }
         }
     });
+
     document.getElementById('totalSalesDisplay').innerText = `RM ${totalRev.toFixed(2)}`;
     document.getElementById('totalGroceriesDisplay').innerText = `RM ${totalGroc.toFixed(2)}`;
     document.getElementById('totalProfitDisplay').innerText = `RM ${(totalRev - totalGroc).toFixed(2)}`;
+
+    const weeklyContainer = document.getElementById('weeklyReportContainer');
+    weeklyContainer.innerHTML = Object.entries(weeklyData).map(([w, data]) => `
+        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Week ${w}</p>
+            <div class="flex justify-between items-end">
+                <div>
+                    <p class="text-[10px] text-gray-400">Profit</p>
+                    <p class="font-bold text-gray-800">RM ${(data.r - data.e).toFixed(2)}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] text-pink-400">Rev: ${data.r.toFixed(0)}</p>
+                    <p class="text-[9px] text-red-400">Exp: ${data.e.toFixed(0)}</p>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 window.renderOrderSummary = (type) => {
@@ -270,19 +300,11 @@ window.renderOrderSummary = (type) => {
     if (type === 'customer') {
         btnCust.className = 'btn btn-active text-xs px-4';
         btnItem.className = 'btn btn-secondary text-xs px-4';
-        
-        // Group orders by customer
-        const grouped = filtered.reduce((acc, o) => { 
-            if (!acc[o.customerName]) acc[o.customerName] = []; 
-            acc[o.customerName].push(o); 
-            return acc; 
-        }, {});
-
+        const grouped = filtered.reduce((acc, o) => { if (!acc[o.customerName]) acc[o.customerName] = []; acc[o.customerName].push(o); return acc; }, {});
         container.innerHTML = Object.entries(grouped).map(([name, custOrders]) => {
             const deliveryTotal = custOrders.reduce((sum, o) => sum + (o.deliveryFee || 0), 0);
             const grandTotal = custOrders.reduce((sum, o) => sum + o.totalPrice, 0);
             
-            // Map individual items with their calculated totals
             const itemsHtml = custOrders.map(o => 
                 o.items.map(i => {
                     const itemTotal = (i.quantity * i.price).toFixed(2);
