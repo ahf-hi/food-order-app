@@ -107,7 +107,7 @@
 
             <section id="salesReportSection" class="hidden">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800">Monthly Analysis</h2>
+                    <h2 class="text-xl font-semibold text-gray-800">Financial Analysis</h2>
                     <div class="flex gap-2">
                         <select id="reportMonth" class="p-2 border border-gray-200 rounded-lg text-xs" onchange="generateSalesReport()"></select>
                         <select id="reportYear" class="p-2 border border-gray-200 rounded-lg text-xs" onchange="generateSalesReport()"></select>
@@ -115,18 +115,24 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-white text-center">
                     <div class="bg-pink-600 p-8 rounded-3xl shadow-lg">
-                        <p class="text-[10px] font-bold uppercase opacity-80">Revenue</p>
+                        <p class="text-[10px] font-bold uppercase opacity-80">Monthly Revenue</p>
                         <h2 id="totalSalesDisplay" class="text-3xl font-extrabold mt-1">RM 0.00</h2>
                     </div>
                     <div class="bg-red-500 p-8 rounded-3xl shadow-lg">
-                        <p class="text-[10px] font-bold uppercase opacity-80">Expenses</p>
+                        <p class="text-[10px] font-bold uppercase opacity-80">Monthly Expenses</p>
                         <h2 id="totalGroceriesDisplay" class="text-3xl font-extrabold mt-1">RM 0.00</h2>
                     </div>
                     <div class="bg-green-600 p-8 rounded-3xl shadow-lg">
-                        <p class="text-[10px] font-bold uppercase opacity-80">Profit</p>
+                        <p class="text-[10px] font-bold uppercase opacity-80">Monthly Profit</p>
                         <h2 id="totalProfitDisplay" class="text-3xl font-extrabold mt-1">RM 0.00</h2>
                     </div>
                 </div>
+
+                <div class="mb-8">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-4 tracking-widest">Weekly Breakdown</h3>
+                    <div id="weeklyReportContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3"></div>
+                </div>
+
                 <div class="p-6 bg-red-50/50 rounded-2xl border border-red-100">
                     <h3 class="text-xs font-semibold text-red-400 uppercase mb-4 text-center">Log Grocery Cost</h3>
                     <form id="groceryForm" class="grid grid-cols-1 md:grid-cols-4 gap-3">
