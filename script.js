@@ -246,23 +246,37 @@ function setupSalesReportFilters() {
 function generateSalesReport() {
     const m = parseInt(document.getElementById('reportMonth').value);
     const y = parseInt(document.getElementById('reportYear').value);
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     
     let totalRev = 0, totalGroc = 0;
-    const weeklyData = { 1: {r:0, e:0}, 2: {r:0, e:0}, 3: {r:0, e:0}, 4: {r:0, e:0}, 5: {r:0, e:0} };
+    const weeklyData = [];
+    const lastDate = new Date(y, m + 1, 0).getDate();
+    
+    // logic: Sunday - Saturday
+    let currentDay = 1;
+    while (currentDay <= lastDate) {
+        let startDate = currentDay;
+        let dateObj = new Date(y, m, currentDay);
+        let dayOfWeek = dateObj.getDay(); 
+        let daysUntilSaturday = 6 - dayOfWeek;
+        let endDate = Math.min(currentDay + daysUntilSaturday, lastDate);
+        
+        weeklyData.push({ start: startDate, end: endDate, rev: 0 });
+        currentDay = endDate + 1;
+    }
 
     orders.forEach(o => {
         const d = new Date(o.date);
         if (d.getMonth() === m && d.getFullYear() === y) {
             const day = d.getDate();
-            const week = Math.min(Math.ceil(day / 7), 5);
             const amt = Number(o.totalPrice);
 
-            if(o.customerName === 'Groceries') {
+            if (o.customerName === 'Groceries') {
                 totalGroc += Math.abs(amt);
-                weeklyData[week].e += Math.abs(amt);
             } else {
                 totalRev += amt;
-                weeklyData[week].r += amt;
+                const weekIdx = weeklyData.findIndex(w => day >= w.start && day <= w.end);
+                if (weekIdx !== -1) weeklyData[weekIdx].rev += amt;
             }
         }
     });
@@ -272,18 +286,15 @@ function generateSalesReport() {
     document.getElementById('totalProfitDisplay').innerText = `RM ${(totalRev - totalGroc).toFixed(2)}`;
 
     const weeklyContainer = document.getElementById('weeklyReportContainer');
-    weeklyContainer.innerHTML = Object.entries(weeklyData).map(([w, data]) => `
-        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-            <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Week ${w}</p>
-            <div class="flex justify-between items-end">
-                <div>
-                    <p class="text-[10px] text-gray-400">Profit</p>
-                    <p class="font-bold text-gray-800">RM ${(data.r - data.e).toFixed(2)}</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-[9px] text-pink-400">Rev: ${data.r.toFixed(0)}</p>
-                    <p class="text-[9px] text-red-400">Exp: ${data.e.toFixed(0)}</p>
-                </div>
+    weeklyContainer.innerHTML = weeklyData.map((w, idx) => `
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Week ${idx + 1}</p>
+            <p class="text-[11px] font-semibold text-pink-500 mb-3">
+                ${w.start} ${monthNames[m]} - ${w.end} ${monthNames[m]}
+            </p>
+            <div>
+                <p class="text-[10px] text-gray-400 font-bold uppercase">Revenue</p>
+                <p class="text-xl font-black text-gray-800">RM ${w.rev.toFixed(2)}</p>
             </div>
         </div>
     `).join('');
