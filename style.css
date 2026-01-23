@@ -68,8 +68,18 @@ section {
     to { transform: translateX(0); opacity: 1; }
 }
 
-.table-container { overflow-x: auto; }
-.data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table-container { 
+    overflow-x: auto; 
+    background: white;
+    border-radius: 1.5rem;
+}
+
+.data-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 14px; 
+}
+
 .data-table th { 
     text-align: left; 
     padding: 12px; 
@@ -79,7 +89,20 @@ section {
     text-transform: uppercase; 
     font-size: 11px; 
 }
-.data-table td { padding: 16px 12px; border-bottom: 1px solid #f1f5f9; }
+
+.data-table td { 
+    padding: 16px 12px; 
+    border-bottom: 1px solid #f1f5f9; 
+}
+
+/* Ranking Table Specifics */
+#menuPerformanceBody td {
+    border-bottom-color: #f8fafc;
+}
+
+#menuPerformanceBody tr:last-child td {
+    border-bottom: none;
+}
 
 #menuItems::-webkit-scrollbar { width: 6px; }
 #menuItems::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 10px; }
