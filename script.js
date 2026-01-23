@@ -85,7 +85,7 @@ function renderAll() {
             <div class="flex items-center justify-between p-3 bg-white border rounded-xl shadow-sm">
                 <label class="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" class="menu-item-checkbox w-5 h-5 accent-pink-500" data-price="${m.price}" data-name="${m.name}" data-category="${m.category}" onchange="calculateTotalPrice()">
-                    <span class="font-bold text-gray-700">${m.name}</span>
+                    <span class="font-bold text-gray-700 text-sm">${m.name}</span>
                 </label>
                 <input type="number" value="1" min="1" class="qty-input w-12 text-center font-black text-pink-600 bg-gray-100 rounded-lg p-1" oninput="calculateTotalPrice()">
             </div>`).join('');
@@ -243,6 +243,7 @@ function setupSalesReportFilters() {
     if(document.getElementById('reportYear')) document.getElementById('reportYear').innerHTML = [yr, yr-1].map(y => `<option value="${y}">${y}</option>`).join('');
 }
 
+// --- UPDATED SALES REPORT GENERATION WITH MENU PERFORMANCE ---
 function generateSalesReport() {
     const m = parseInt(document.getElementById('reportMonth').value);
     const y = parseInt(document.getElementById('reportYear').value);
@@ -250,6 +251,7 @@ function generateSalesReport() {
     
     let totalRev = 0, totalGroc = 0;
     const weeklyData = [];
+    const menuStats = {}; // To store ranking data
     const lastDate = new Date(y, m + 1, 0).getDate();
     
     // logic: Sunday - Saturday
@@ -277,6 +279,16 @@ function generateSalesReport() {
                 totalRev += amt;
                 const weekIdx = weeklyData.findIndex(w => day >= w.start && day <= w.end);
                 if (weekIdx !== -1) weeklyData[weekIdx].rev += amt;
+
+                // Track Menu Item Stats
+                if (o.items) {
+                    o.items.forEach(item => {
+                        const name = formatItemName(item);
+                        if (!menuStats[name]) menuStats[name] = { qty: 0, revenue: 0 };
+                        menuStats[name].qty += item.quantity;
+                        menuStats[name].revenue += (item.quantity * item.price);
+                    });
+                }
             }
         }
     });
@@ -285,19 +297,32 @@ function generateSalesReport() {
     document.getElementById('totalGroceriesDisplay').innerText = `RM ${totalGroc.toFixed(2)}`;
     document.getElementById('totalProfitDisplay').innerText = `RM ${(totalRev - totalGroc).toFixed(2)}`;
 
+    // Render Weekly Cards
     const weeklyContainer = document.getElementById('weeklyReportContainer');
     weeklyContainer.innerHTML = weeklyData.map((w, idx) => `
         <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
             <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Week ${idx + 1}</p>
-            <p class="text-[11px] font-semibold text-pink-500 mb-3">
-                ${w.start} ${monthNames[m]} - ${w.end} ${monthNames[m]}
-            </p>
+            <p class="text-[11px] font-semibold text-pink-500 mb-3">${w.start} ${monthNames[m]} - ${w.end} ${monthNames[m]}</p>
             <div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase">Revenue</p>
                 <p class="text-xl font-black text-gray-800">RM ${w.rev.toFixed(2)}</p>
             </div>
         </div>
     `).join('');
+
+    // --- RENDER MENU PERFORMANCE TABLE (AT THE BOTTOM) ---
+    const perfBody = document.getElementById('menuPerformanceBody');
+    if (perfBody) {
+        const sorted = Object.entries(menuStats).sort((a, b) => b[1].revenue - a[1].revenue);
+        perfBody.innerHTML = sorted.map(([name, data], idx) => `
+            <tr class="border-b hover:bg-gray-50 transition">
+                <td class="p-4 text-xs font-bold text-gray-300">#${idx + 1}</td>
+                <td class="p-4 text-sm font-bold text-gray-700">${name}</td>
+                <td class="p-4 text-sm text-center font-medium text-gray-500">${data.qty} Sold</td>
+                <td class="p-4 text-sm font-black text-pink-600 text-right">RM ${data.revenue.toFixed(2)}</td>
+            </tr>
+        `).join('') || '<tr><td colspan="4" class="p-10 text-center text-gray-400">No menu sales data available for this month.</td></tr>';
+    }
 }
 
 window.renderOrderSummary = (type) => {
@@ -328,7 +353,7 @@ window.renderOrderSummary = (type) => {
 
             return `
             <div class="p-6 bg-white rounded-3xl border shadow-sm border-l-8 border-pink-500">
-                <h3 class="font-black text-gray-800 mb-3 uppercase tracking-tighter">${name}</h3>
+                <h3 class="font-black text-gray-800 mb-3 uppercase tracking-tighter text-sm">${name}</h3>
                 <div class="space-y-1">${itemsHtml}</div>
                 <div class="mt-3 pt-2 border-t flex justify-between items-center">
                     <span class="text-[10px] font-bold text-gray-400 italic">Delivery Fee: RM ${deliveryTotal.toFixed(2)}</span>
@@ -350,13 +375,13 @@ window.renderOrderSummary = (type) => {
         });
         let html = Object.entries(counts).map(([n, q]) => `
             <div class="bg-white p-5 rounded-2xl border flex justify-between shadow-sm">
-                <b class="text-gray-700">${n}</b>
+                <b class="text-gray-700 text-sm">${n}</b>
                 <span class="text-pink-600 font-black text-xl">${q}</span>
             </div>`).join('');
         if (totalDelivs > 0) {
             html += `
             <div class="bg-gray-100 p-5 rounded-2xl border flex justify-between shadow-sm border-dashed">
-                <b class="text-gray-500 italic">Total Deliveries Today</b>
+                <b class="text-gray-500 italic text-sm">Total Deliveries Today</b>
                 <span class="text-gray-700 font-black text-xl">${totalDelivs}</span>
             </div>`;
         }
